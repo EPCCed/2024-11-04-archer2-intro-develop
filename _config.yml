@@ -99,3 +99,6 @@ exclude:
 
 # Turn on built-in syntax highlighting.
 highlighter: rouge
+
+# ARCHER2 Project ID
+gid: ta000

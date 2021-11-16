@@ -1,7 +1,8 @@
 ---
 title: "Debugging and profiling on ARCHER2"
 teaching: 30
-exercises: 20
+exercises: 30
+start: True
 questions:
 - "What debugging tools are available on ARCHER2 and how can I access them?"
 - "What profiling tools are available on ARCHER2 and how can I access them?"
@@ -16,7 +17,7 @@ keypoints:
 
 ARCHER2 has a range of debugging and profiling software available. In this section we provide a brief
 overview of the tools available, their applicability and links to more information. A detailed tutorial
-on the use of these tools is beyond the scope of this course but if you are interested in this, then 
+on the use of these tools is beyond the scope of this course but if you are interested in this, then
 you may be interested in the following courses offered by the ARCHER2 service:
 
 * Performance Analysis Workshop
@@ -25,7 +26,7 @@ you may be interested in the following courses offered by the ARCHER2 service:
 
 The following debugging tools are available on ARCHER2:
 
-* **gdb4hpc** is a command-line tool working similarly to [gdb](https://www.gnu.org/software/gdb/) 
+* **gdb4hpc** is a command-line tool working similarly to [gdb](https://www.gnu.org/software/gdb/)
   that allows users to debug parallel programs. It can launch parallel programs or attach to ones
   already running and allows the user to step through the execution to identify the causes of any
   unexpected behaviour. Available via ``module load gdb4hpc``.
@@ -59,12 +60,10 @@ We'll be using ``gdb4hpc`` to go through this program and see where errors might
 Setup your environment, load and launch ``gdb4hpc``:
 
 ```bash
- export CTI_WLM_IMPL=slurm
- export CTI_LAUNCHER_NAME=srun
  module load gdb4hpc
  gdb4hpc
 ```
-    
+
 You will get some information about this version of the program and, eventually, you will get a command prompt:
 
 ```
@@ -76,13 +75,13 @@ You will get some information about this version of the program and, eventually,
  Type "help <cmd>" for detailed help about a command.
  dbg all>
 ```
-  
+
 We will use ``launch`` to start an application within gdb4hpc. For now, we want to run our simulation on a single process, so we will type:
 
 ```bash
- dbg all> launch --launcher-args="--account=[budget code] --partition=standard --qos=standard --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
+ dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
 ```
-    
+
 This will launch an ``srun`` job on one of the compute nodes. The name `my_prog` is a dummy name to which this run-through of the program is linked -- you will not be able to launch another program using this name, and you can use any name you want instead. The number in the brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, `gdb4hpc` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower `gdb4hpc` will be.
 
 Once the program is launched, gdb4hpc will load up the program and begin to run it. You will get output to screen something that looks like:
@@ -99,7 +98,7 @@ Finalizing setup...
 Launch complete.
 my_prog{0}: Initial breakpoint, main at /PATH/TO/gdb4hpc_exercise.c:9
 ```
-    
+
 The line number at which the initial breakpoint is made (in the above example,
 line 9) corresponds to the first line within the `main` function.
 
@@ -123,16 +122,16 @@ For now, we will look at `list`, `next`, `print`, and `watch`. Running:
 should output the first 10 lines of `main`:
 
 ```
- my_prog{0}: 9	
+ my_prog{0}: 9
  my_prog{0}: 10	  // Initiallise MPI environment
  my_prog{0}: 11	  MPI_Init(NULL,NULL);
- my_prog{0}: 12	
+ my_prog{0}: 12
  my_prog{0}: 13	  // Get processor rank
  my_prog{0}: 14	  int rank;
  my_prog{0}: 15	  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
- my_prog{0}: 16	
+ my_prog{0}: 16
  my_prog{0}: 17	  int count = rank + 1;
- my_prog{0}: 18	
+ my_prog{0}: 18
 ```
 
 Repeating `list` will bring show you the next 10 lines, *etc.*.
@@ -166,13 +165,13 @@ The current value of variable `count` is printed to screen. If we progress the c
 Let's now try launching across multiple processes:
 
 ```bash
- dbg all> launch -launcher-args="--account=[budget code] --partition=standard --qos=standard --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{2} ./gdb_exercise
+ dbg all> launch -launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{2} ./gdb_exercise
 ```
 
 > ## Exercise
 > The code seems to be trying to send the variable `count` from one process to another. Follow `count` (using `watch`) and see how it changes throughout the code. What happens?
 > > ## Solution
-> > Eventually, both processes will hang: process 0 hangs at an `MPI_Barrier` on line 19 and is stuck waiting for process 1 to reach its barrier. Process 1 is stuck at an `MPI_Recv` on line 21. Further investigation shows that it is waiting for an `MPI_Send` that does not exist -- the source is process 1 (which has not sent anything) and the tag is `1` (there is no MPI_Send with this tag). 
+> > Eventually, both processes will hang: process 0 hangs at an `MPI_Barrier` on line 19 and is stuck waiting for process 1 to reach its barrier. Process 1 is stuck at an `MPI_Recv` on line 21. Further investigation shows that it is waiting for an `MPI_Send` that does not exist -- the source is process 1 (which has not sent anything) and the tag is `1` (there is no MPI_Send with this tag).
 > {: .solution}
 {: .challenge}
 
@@ -180,7 +179,7 @@ Let's `quit` our program, fix that bug, and go back into `gdb4hpc`. Again, we'll
 
 ```bash
  dbg all> release $my_prog
- dbg all> launch -launcher-args="--account=[budget code] --partition=standard --qos=standard --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise	
+ dbg all> launch -launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
 ```
 
 This time, instead of `next`, we will use `step` -- this does the same as `next` with the added feature that we can go into functions and subroutines where applicable. As the new bug appears to come from the `sum_even` function, let's see where exactly the program hangs.
@@ -207,31 +206,31 @@ a number of different components:
 * **Cray Apprentice2** the second-level data analysis tool, used to visualize, manipulate, explore, and compare sets of program performance data in a GUI environment.
 
 
-See [the Cray Performance Measurament and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_Installation_Guide_632_S-2474/page/Use_CrayPat_CrayPat-lite_Apprentice2_or_Reveal.html) 
+See [the Cray Performance Measurament and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_Installation_Guide_632_S-2474/page/Use_CrayPat_CrayPat-lite_Apprentice2_or_Reveal.html)
 
 ## Using CrayPat Lite to profile an application
 Let's grab and unpack a toy code for training purposes. To do this, we'll use `wget`.
 
 ```
-auser@login01-nmn:~>  wget {{site.url}}{{site.baseurl}}/files/nbody-par.tar.gz
+auser@uan01:~>  wget {{site.url}}{{site.baseurl}}/files/nbody-par.tar.gz
 ```
 {: .language-bash}
 
 To extract the files from a `.tar.gz` file, we run the command `tar -xvf filename.tar.gz`:
 ```
-auser@login01-nmn:~> tar -xzf nbody-par.tar.gz
+auser@uan01:~> tar -xzf nbody-par.tar.gz
 ```
 {: .bash}
 
 Load CrayPat-lite module (`perftools-lite`)
 ```
-auser@login01-nmn:~> module load perftools-lite
+auser@uan01:~> module load perftools-lite
 ```
 {: .bash}
 
 and compile the application normally
 ```
-auser@login01-nmn:~> make
+auser@uan01:~> make
 ```
 {: .bash}
 ```
@@ -248,7 +247,7 @@ As the output of the compilation says, the executable `nbody-parallel.exe` has b
 
 Once our job has finished, we can get the performance data summarized at the end of the job STDOUT.
 ```
-auser@login01-nmn:~> less slurm-out.txt
+auser@uan01:~> less slurm-out.txt
 ```
  {: .language-bash}
 ```
@@ -288,7 +287,7 @@ I/O Write Rate:   9.319690 MiBytes/sec
 
 ...lots of output trimmed...
 
-```	
+```
 {: .output}
 
 ## Using CrayPat to profile an application
@@ -296,20 +295,20 @@ I/O Write Rate:   9.319690 MiBytes/sec
 We are now going to use the full CrayPat tools. To do so, we first need to load the required modules
 
 ```
-auser@login01-nmn:~>  module unload perftools-lite
-auser@login01-nmn:~>  module load perftools
+auser@uan01:~>  module unload perftools-lite
+auser@uan01:~>  module load perftools
 ```
 {: .language-bash}
 
 After loading the modules, we need to recompile the application
 ```
-auser@login01-nmn:~> make clean; make
+auser@uan01:~> make clean; make
 ```
 {: .bash}
 
 Once the application has been built, we need to instrument the binary. We do this with `pat_build`
 ```
-auser@login01-nmn:~> pat_build nbody-parallel.exe
+auser@uan01:~> pat_build nbody-parallel.exe
 ```
 {: .bash}
 
@@ -326,17 +325,17 @@ After the job has finished, files are stored in an experiment data directory wit
 * `PID`: The process ID assigned to the instrumented executable at runtime
 * `node`: The physical node ID upon which the rank zero process was executed
 * `[s|t]`: The type of experiment performed, either `s` for sampling or `t` for tracing
-	
+
 for example, in our case a new directory called `nbody-parallel.exe+pat+189193-3s` could be created. It is now time to obtain the performance report. We do this with the `pat_report` command and the new created directory
 ```
-auser@login01-nmn:~> pat_report nbody-parallel.exe+pat+189193-3s
+auser@uan01:~> pat_report nbody-parallel.exe+pat+189193-3s
 ```
 {: .bash}
 
 This will command generate a full performance report and can generate a large amount of data, so you may wish to capture the data in an output file, either using a shell redirect like `>`,  or we could choose to see only some reports. If we want to see only a profile report by function we can do
 
 ```
-auser@login01-nmn:~> pat_report -v -O samp_profile nbody-parallel.exe+pat+189193-3s/
+auser@uan01:~> pat_report -v -O samp_profile nbody-parallel.exe+pat+189193-3s/
 ```
 {: .bash}
 
@@ -373,7 +372,7 @@ The raw number of samples for each code section is shown in the second column an
 
 Another useful table can be obtained profiling by Group, Function, and Line
 ```
-auser@login01-nmn:~> pat_report -v -O samp_profile+src nbody-parallel.exe+pat+189193-3s/
+auser@uan01:~> pat_report -v -O samp_profile+src nbody-parallel.exe+pat+189193-3s/
 ```
 {: .bash}
 
@@ -418,7 +417,7 @@ Table 3:  Profile by Group, Function, and Line
 
 If we want to profile by Function and Callers, with Line Numbers then
 ```
-auser@login01-nmn:~> pat_report -O ca+src nbody-parallel.exe+pat+189193-3s/
+auser@uan01:~> pat_report -O ca+src nbody-parallel.exe+pat+189193-3s/
 ```
 {: .bash}
 
@@ -482,7 +481,7 @@ pat_build -O nbody-parallel.exe+pat+189193-3s/build-options.apa
 This will produce a third binary with extension `+apa`. This binary should once again be run on the back end, so the submission script should be modified and the name of the executable changed to `nbody-parallel.exe+apa`.
 Similarly to the sampling process, a new directory called `exe+apa+PID-node[s|t]` will be generated by the application, which should be processed by the `pat_report` tool. The output format of this new directory is similar to the one obtained with sampling, but now this includes `apa` and `t` to indicate that this is a tracing experiment. For instance, with our code we could get a new directory called `nbody-parallel.exe+apa+69935-4t`.
 ```
-auser@login01-nmn:~> pat_report nbody-parallel.exe+apa+69935-4t
+auser@uan01:~> pat_report nbody-parallel.exe+apa+69935-4t
 ```
 {: .bash}
 
@@ -518,7 +517,7 @@ The new table above is the version generated from tracing data instead of the pr
 
 We can also get very important performance data from the hardware (HW) counters
 ```
-auser@login01-nmn:~> pat_report -v -O profile+hwpc nbody-parallel.exe+apa+69935-4t
+auser@uan01:~> pat_report -v -O profile+hwpc nbody-parallel.exe+apa+69935-4t
 ```
 {: .bash}
 ```

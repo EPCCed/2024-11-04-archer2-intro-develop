@@ -70,11 +70,11 @@ All users have their own directory on the home file systems at:
 /home/<projectID>/<subprojectID>/<userID>
 ```
 
-For example, if your username is `auser` and you are in the project `t01` then your *home
+For example, if your username is `auser` and you are in the project `{{site.gid}}` then your *home
 directory* will be at:
 
 ```
-/home/t01/t01/auser
+/home/{{site.gid}}/{{site.gid}}/auser
 ```
 
 > ## Home file system and Home directory
@@ -94,11 +94,11 @@ will be completely up to date as they are controlled by SAFE.)
 > ## Subprojects?
 > Some large projects may choose to split their resources into multiple subprojects. These 
 > subprojects will have identifiers prepended with the main project ID. For example, the
-> `rse` subgroup of the `t01` project would have the ID `t01-rse`. If the main project has
+> `rse` subgroup of the `{{site.gid}}` project would have the ID `{{site.gid}}-rse`. If the main project has
 > allocated storage quotas to the subproject the directories for this storage will be 
 > found at, for example:
 > ```
-> /home/t01/t01-rse/auser
+> /home/{{site.gid}}/{{site.gid}}-rse/auser
 > ```
 > Your Linux home directory will generally not be changed when you are made a member of 
 > a subproject so you must change directories manually (or change the ownership of files)
@@ -119,11 +119,11 @@ All users have their own directory on the work file systems at:
 /work/<projectID>/<subprojectID>/<userID>
 ```
 
-For example, if your username is `auser` and you are in the project `t01` then your main home
+For example, if your username is `auser` and you are in the project `{{site.gid}}` then your main home
 directory will be at:
 
 ```
-/work/t01/t01/auser
+/work/{{site.gid}}/{{site.gid}}/auser
 ```
 
 > ## Jobs can't see your data?
@@ -136,20 +136,18 @@ for the home file system above. If you want more up to date information, you can
 the quotas and use directly on ARCHER2 itself using the `lfs quota` command. For example,
 to query your project quota on the work file system you could use:
 
-<!-- TODO update with correct command for ARCHER2 -->
-
 ```
-lfs quota -hg t01 /work
+lfs quota -hg {{site.gid}} /work
 ```
 {: .language-bash}
 ```
-Disk quotas for group t01 (gid 1001):
+Disk quotas for group {{site.gid}} (gid 1001):
      Filesystem    used   quota   limit   grace   files   quota   limit   grace
            /work  17.24T      0k  21.95T       - 6275076       0 10000000       -
 ```
 {: .output}
 
-(Remember to replace `t01` with your project code.) The `used` column shows how much space
+(Remember to replace `{{site.gid}}` with your project code.) The `used` column shows how much space
 the whole project is using and the `limit` column shows how much quota is available for the
 project. You can show your own user's use and quota with:
 
@@ -185,15 +183,15 @@ Both the home and work file systems have special directories that allow you to s
 with other users. There are directories that allow you to share data only with other users
 in the same project and directories that allow you to share data with users in other projects.
 
-To share data with users in the same project you use the `/work/t01/t01/shared` directory
-(remember to replace `t01` with your project ID) and make sure the permissions on the 
+To share data with users in the same project you use the `/work/{{site.gid}}/{{site.gid}}/shared` directory
+(remember to replace `{{site.gid}}` with your project ID) and make sure the permissions on the 
 directory are correctly set to allow sharing in the project:
 
 ```
-auser@login01-nmn:~> mkdir /work/t01/t01/shared/interesting-data
-auser@login01-nmn:~> cp -r modelling-output /work/t01/t01/shared/interesting-data/
-auser@login01-nmn:~> chmod -R g+rX,o-rwx /work/t01/t01/shared/interesting-data
-auser@login01-nmn:~> ls -l /work/t01/t01/shared
+auser@uan01:~> mkdir /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
+auser@uan01:~> cp -r modelling-output /work/{{site.gid}}/{{site.gid}}/shared/interesting-data/
+auser@uan01:~> chmod -R g+rX,o-rwx /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
+auser@uan01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
 ```
 {: .language-bash}
 ```
@@ -208,15 +206,15 @@ drwxr-s---  2 auser  z01      4096 Jul 20 12:09 interesting-data
 ```
 {: .output}
 
-To share data with users in other projects, you use the `/work/t01/shared` directory
-(remember to replace `t01` with your project ID) and make sure the permissions on the 
+To share data with users in other projects, you use the `/work/{{site.gid}}/shared` directory
+(remember to replace `{{site.gid}}` with your project ID) and make sure the permissions on the 
 directory are correctly set to allow sharing with all other users:
 
 ```
-auser@login01-nmn:~> mkdir /work/t01/shared/more-interesting-data
-auser@login01-nmn:~> cp -r more-modelling-output /work/t01/shared/more-interesting-data/
-auser@login01-nmn:~> chmod -R go+rX /work/t01/shared/more-interesting-data
-auser@login01-nmn:~> ls -l /work/t01/shared
+auser@uan01:~> mkdir /work/{{site.gid}}/shared/more-interesting-data
+auser@uan01:~> cp -r more-modelling-output /work/{{site.gid}}/shared/more-interesting-data/
+auser@uan01:~> chmod -R go+rX /work/{{site.gid}}/shared/more-interesting-data
+auser@uan01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
 ```
 {: .language-bash}
 ```
@@ -280,7 +278,7 @@ tools and other useful software. Some examples of the software installed are:
 More information on the software available on ARCHER2 can be found in
 [the ARCHER2 Documentation](https://docs.archer2.ac.uk).
 
-ARCHER2 also supports the use of [Singularity containers](https://docs.archer2.ac.uk/user-guide/containers.html) for single-node and multi-node jobs.
+ARCHER2 also supports the use of [Singularity containers](https://docs.archer2.ac.uk/user-guide/containers/) for single-node and multi-node jobs.
 
 > ## What about your research?
 >

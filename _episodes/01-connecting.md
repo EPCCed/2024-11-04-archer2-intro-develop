@@ -1,6 +1,6 @@
 ---
 title: "Connecting to ARCHER2 and transferring data"
-teaching: 20
+teaching: 30
 exercises: 15
 questions:
 - "How can I access ARCHER2 interactively and transfer data?"
@@ -61,7 +61,7 @@ The public part of the key pair is associated with your account using the SAFE w
 See the ARCHER2 User and Best Practice Guide for information on how to create SSH key pairs
 and associate them with your account:
 
-* [Connecting to ARCHER2](https://docs.archer2.ac.uk/user-guide/connecting.html)
+* [Connecting to ARCHER2](https://docs.archer2.ac.uk/user-guide/connecting/)
 
 ## Data transfer services: scp, rsync, Globus Online
 
@@ -75,7 +75,7 @@ the data to. The three main options are:
 
 More information on data transfer mechanisms can be found in the ARCHER2 User and Best Practice Guide:
 
-* [Data management and transfer](https://docs.archer2.ac.uk/user-guide/data.html)
+* [Data management and transfer](https://docs.archer2.ac.uk/user-guide/data/)
 
 ## Data transfer best practice
 
@@ -111,13 +111,13 @@ Information on how to transfer data efficiently using the above methods is avail
 > > You use the `zip` command to archive the data. The `-r` option is used to perform the operation
 > > recursively on a directory and the `-0` option is used to specify the archive should be uncompressed:
 > > ```
-> > auser@login01-nmn:~> zip -0r large_data_output.zip large_data_output/
+> > auser@uan01:~> zip -0r large_data_output.zip large_data_output/
 > > ```
 > > {: .language-bash}
 > > To verify the archive is valid, you would use the `zip` command again, this time with the `-t` 
 > > option:
 > > ```
-> > auser@login01-nmn:~> zip -t large_data_output.zip
+> > auser@uan01:~> zip -T large_data_output.zip
 > > ```
 > > {: .language-bash}
 > {: .solution}
