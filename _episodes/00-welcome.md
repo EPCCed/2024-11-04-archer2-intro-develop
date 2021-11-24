@@ -26,12 +26,12 @@ There are many helpers available to assist you and to answer any questions you m
 work through the material together. You should also feel free to ask questions of the instructor
 whenever you like. The instructor will also provide many opportunities to pause and ask questions.
 
-We will also make use of a shared collaborative document - the *etherpad*. You will find a link
+We will also make use of a shared collaborative document - the *Etherpad*. You will find a link
 to this collaborative document on the course page. We will use it for a number of different purposes,
 for example, it may be used during exercises and instructors and helpers may put useful information
-or links in the etherpad that help or expand on the material being taught. If you have useful
-information to share with the class then please do add it to the etherpad. At the end of the course,
-we take a copy of the information in the etherpad, remove any personally-identifiable information 
+or links in the Etherpad that help or expand on the material being taught. If you have useful
+information to share with the class then please do add it to the Etherpad. At the end of the course,
+we take a copy of the information in the Etherpad, remove any personally-identifiable information 
 and post this on the course archive page so you should always be able to come back and find any
 information you found useful.
 
@@ -42,6 +42,7 @@ use informal and structured feedback activities during the course to ensure we t
 content appropriately for the attendees and feedback after the course to help us improve our training
 for the future.
 
+<!---
 You will be issued with red and green "stickies" (or shown how to use their virtual equivalent for 
 online courses) to allow you give the instructor and helpers quick visual feedback on how you
 are getting on with the pace and the content of the course. If you are comfortable with the 
@@ -55,6 +56,7 @@ activity to gauge how the course is matching onto attendees requirements. Instru
 will review this feedback over lunch (or overnight) and provide a summary of what we found at the
 start of the next session and, potentially, how the upcoming material/schedule will be changed
 to address the feedback.
+-->
 
 Finally, you will be provided with the opportunity to provide feedback on the course after it has
 finished. We welcome all this feedback, both good and bad, as this information in key to allow

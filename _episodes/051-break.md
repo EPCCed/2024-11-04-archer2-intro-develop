@@ -1,6 +1,8 @@
 ---
-title: "Break"
-break: 30
+layout: break
+title: "Morning Break"
+break: 15
 ---
 
-Comfort break
+{% include links.md %}
+

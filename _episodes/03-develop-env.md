@@ -1,7 +1,7 @@
 ---
 title: "ARCHER2 development environment "
 teaching: 30
-exercises: 40
+exercises: 45
 questions:
 - "What does the ARCHER2 development environment look like and how do I access different components?"
 - "How can I find out what compilers, tools, and libraries are available?"
@@ -40,7 +40,7 @@ All users start with a default set of modules loaded into their environment. The
 You can see what modules you currently have loaded with the `module list` command:
 
 ```
-auser@login01-nmn:~> module list
+auser@uan01:~> module list
 ```
 {: .language-bash}
 ```
@@ -75,7 +75,7 @@ by the current default version of HPE Cray LibSci.
 You can query which software is provided by modules with the `module avail` command:
 
 ```
-auser@login01-nmn:~> module avail
+auser@uan01:~> module avail
 ```
 {: .language-bash}
 ```
@@ -139,7 +139,7 @@ If you want more information on a particular module, you can use the `module hel
 to get more info on the `cray-netcdf` module:
 
 ```
-aturner@login01-nmn:~> module help cray-netcdf
+auser@uan01:~> module help cray-netcdf
 ```
 {: .language-bash}
 ```
@@ -243,7 +243,7 @@ Lets look at our environment before we change anything. To see just our loaded m
 `module list` command:
 
 ```
-auser@login01-nmn:~> module list
+auser@uan01:~> module list
 ```
 {: .language-bash}
 ```
@@ -260,7 +260,7 @@ Currently Loaded Modulefiles:
 You load modules with the `module load` command. For example, to load the `cray-netcdf` module:
 
 ```
-auser@login01-nmn:~> module load cray-netcdf
+auser@uan01:~> module load cray-netcdf
 ```
 <!-- Commented out until Lmod is really available and we can test{: .language-bash}
 
@@ -273,7 +273,7 @@ auser@login01-nmn:~> module load cray-netcdf
 Now, lets list our loaded modules again with `module list`:
 
 ```
-auser@login01-nmn:~> module list
+auser@uan01:~> module list
 ```
 {: .language-bash}
 ```
@@ -312,8 +312,8 @@ default when you log in. You can change to the GCC compiler environment with the
 `module restore PrgEnv-gnu` command (with `module list` afterwards to show how things have changed):
 
 ```
-auser@login01-nmn:~> module restore PrgEnv-gnu
-auser@login01-nmn:~> module list
+auser@uan01:~> module restore PrgEnv-gnu
+auser@uan01:~> module list
 ```
 {: .language-bash}
 ```
@@ -369,9 +369,9 @@ For example, to change the version of GCC you are using you would first switch t
 environment and then switch to a different version of GCC:
 
 ```
-auser@login01-nmn:~> module restore PrgEnv-gnu
-auser@login01-nmn:~> module swap gcc gcc/9.3.0
-auser@login01-nmn:~> module list
+auser@uan01:~> module restore PrgEnv-gnu
+auser@uan01:~> module swap gcc gcc/9.3.0
+auser@uan01:~> module list
 ```
 {: .language-bash}
 ```
