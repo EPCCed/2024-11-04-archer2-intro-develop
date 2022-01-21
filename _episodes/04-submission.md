@@ -404,7 +404,6 @@ per node and 16 OpenMP threads per MPI task (so all 256 cores across both nodes 
 #SBATCH --hint=nomultithread
 #SBATCH --distribution=block:block
 
-module load epcc-job-env
 module load xthi
 
 export OMP_NUM_THREADS=16

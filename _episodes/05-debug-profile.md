@@ -88,7 +88,7 @@ We will use ``launch`` to start an application within gdb4hpc. For now, we want 
  dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --time=0:10:0 --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
 ```
 
-This will launch an ``srun`` job on one of the compute nodes. The name `my_prog` is a dummy name to which this run-through of the program is linked -- you will not be able to launch another program using this name, and you can use any name you want instead. The number in the curly brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, `gdb4hpc` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower `gdb4hpc` will be to launch the tasks once the job has begun.
+This will launch an ``srun`` job for ``gdb_exercise`` on one of the compute nodes. The name ``my_prog`` will be used by ``gdb4hpc`` as a reference to this particular run of the program -- you will not be able to launch another program using this name, but you can use any name you want instead. Once the run is started, you can reference it by prepending it with a ``$`` sign, so ``$my_prog`` in this case. The number in the curly brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, ``gdb4hpc`` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower ``gdb4hpc`` will be to launch the tasks once the job has begun. We use ``--launcher-args`` to pass all the ``SBATCH`` options we would normally provide in a job script through to the job launcher.
 
 Once the program is launched, gdb4hpc will load up the program and begin to run it. You will get output to screen something that looks like:
 
@@ -180,11 +180,11 @@ Let's now ``quit`` gdb4hpc, start it again, and try launching across multiple pr
 > {: .solution}
 {: .challenge}
 
-Let's `quit` our program, fix that bug, and go back into `gdb4hpc`. Again, we'll launch our program on 2 processes, and again, we'll watch the variable `count`. This time, both processes are able to get the same value for the variable `count`. There is one final part of the code to look at -- process 1 will try to get the sum of all even numbers between 0 and 20. However, the program begins to hang when process 1 reached line 28 (process 0 also hangs, but it's already at the `MPI_Finalise` part of the routine so we don't need to worry about it). Once we reach this hang, we can't easily keep going. Let's stop this debugging session and restart it by using `release`:
+Let's `quit` our program, fix that bug, and go back into `gdb4hpc`. Again, we'll launch our program on 2 processes, and again, we'll watch the variable `count`. This time, both processes are able to get the same value for the variable `count`. There is one final part of the code to look at -- process 0 will try to get the sum of all even numbers between 0 and 20. However, the program begins to hang when process 0 reached line 28 (process 1 also hangs, but it's already at the `MPI_Finalize` part of the routine so we don't need to worry about it). Once we reach this hang, we can't easily keep going. Let's stop this debugging session and restart it by using `release`:
 
 ```bash
  dbg all> release $my_prog
- dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
+ dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
 ```
 
 This time, instead of `next`, we will use `step` -- this does the same as `next` with the added feature that we can go into functions and subroutines where applicable. As the new bug appears to come from the `sum_even` function, let's see where exactly the program hangs.
