@@ -15,7 +15,7 @@ keypoints:
 
 ## Architecture
 
-The ARCHER2 Cray Shasta system consists of a number of different node types. The ones visible
+The ARCHER2 HPE Cray EX system consists of a number of different node types. The ones visible
 to users are:
 
 * Login nodes
@@ -30,8 +30,8 @@ alt="ARCHER2 architecture diagram" caption="ARCHER2 architecture" %}
 
 ## Compute nodes
 
-There are 5,848 compute nodes in total giving 748,544 compute cores on ARCHER2. There
-are 5,556 standard compute nodes with 256 GiB memory per node and 292 high memory 
+There are 5,860 compute nodes in total giving 748,544 compute cores on ARCHER2. There
+are 5,276 standard compute nodes with 256 GiB memory per node and 584 high memory 
 compute nodes with 512 GiB of memory per node. All of the compute nodes are linked
 together using the high-performance Cray Slingshot interconnect.
 
@@ -51,11 +51,12 @@ Compute node summary (with comparison to ARCHER):
 
 ## Storage
 
-There are three different storage systems available on ARCHER2:
+There are four different storage systems available on ARCHER2:
 
 * Home
 * Work
 * Solid State
+* RDFaaS
 
 ### Home
 
@@ -177,6 +178,19 @@ Data on the solid state storage is transient so all data you require before a jo
 after a job finishes must be *staged* on to or off of the solid state storage. We discuss how
 this works in the Scheduler episode later.
 
+### RDFaaS
+
+If you had data on the `/epsrc` or `/general` file systems on the RDF, you will be able to access
+this on ARCHER2 via the RDFaaS (RDF as a Service). The directory structure is the same as on the
+home and work file systems, so an RDF user named `auser` in the `e05` project would find their data
+on the RDFaaS at
+
+```
+/epsrc/e05/e05/auser
+```
+
+Data on the RDFaaS is only visible on the login nodes, so should be copied to work before use in jobs.
+
 ### Sharing data with other users
 
 Both the home and work file systems have special directories that allow you to share data 
@@ -188,10 +202,10 @@ To share data with users in the same project you use the `/work/{{site.gid}}/{{s
 directory are correctly set to allow sharing in the project:
 
 ```
-auser@uan01:~> mkdir /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
-auser@uan01:~> cp -r modelling-output /work/{{site.gid}}/{{site.gid}}/shared/interesting-data/
-auser@uan01:~> chmod -R g+rX,o-rwx /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
-auser@uan01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
+auser@ln01:~> mkdir /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
+auser@ln01:~> cp -r modelling-output /work/{{site.gid}}/{{site.gid}}/shared/interesting-data/
+auser@ln01:~> chmod -R g+rX,o-rwx /work/{{site.gid}}/{{site.gid}}/shared/interesting-data
+auser@ln01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
 ```
 {: .language-bash}
 ```
@@ -211,10 +225,10 @@ To share data with users in other projects, you use the `/work/{{site.gid}}/shar
 directory are correctly set to allow sharing with all other users:
 
 ```
-auser@uan01:~> mkdir /work/{{site.gid}}/shared/more-interesting-data
-auser@uan01:~> cp -r more-modelling-output /work/{{site.gid}}/shared/more-interesting-data/
-auser@uan01:~> chmod -R go+rX /work/{{site.gid}}/shared/more-interesting-data
-auser@uan01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
+auser@ln01:~> mkdir /work/{{site.gid}}/shared/more-interesting-data
+auser@ln01:~> cp -r more-modelling-output /work/{{site.gid}}/shared/more-interesting-data/
+auser@ln01:~> chmod -R go+rX /work/{{site.gid}}/shared/more-interesting-data
+auser@ln01:~> ls -l /work/{{site.gid}}/{{site.gid}}/shared
 ```
 {: .language-bash}
 ```
@@ -224,7 +238,7 @@ total 150372
 
 drwxr-sr-x  2 auser  z01      4096 Jul 20 12:09 more-interesting-data
 
-..snip...
+...snip...
 
 ```
 {: .output}
@@ -236,9 +250,9 @@ use in exactly the same way.
 
 The ARCHER2 system runs the *Cray Linux Environment* which is based on SUSE Enterprise Linux.
 The service officially supports the *bash* shell for interactive access, shell scripting and
-job submission scripts. The scheduling software is SLURM.
+job submission scripts. The scheduling software is Slurm.
 
-As well as the hardware and system software, Cray supply the Cray Programming Environment which
+As well as the hardware and system software, HPE Cray supply the Cray Programming Environment which
 contains:
 
 | Compilers | GCC, Cray Compilers (CCE), AMD Compilers (AOCC) |
@@ -260,7 +274,7 @@ tools and other useful software. Some examples of the software installed are:
 | Research area | Software |
 |-|-|
 | Materials and molecular modelling | CASTEP, ChemShell, CP2K, Elk, LAMMPS, NWChem, ONETEP, Quantum Espresso, VASP |
-| Engineering | Code Saturne, FEniCS, OpenFOAM |
+| Engineering | Code_Saturne, FEniCS, OpenFOAM |
 | Biomolecular modelling | GROMACS, NAMD |
 | Earth system modelling | MITgcm, Met Office UM, Met Office LFRic, NEMO |
 | Scientific libraries | ARPACK, Boost, Eigen, ELPA, GSL, HYPRE, METIS, MUMPS, ParaFEM, ParMETIS, PETSc, Scotch, SLEPC, SUNDIALS, Zoltan |

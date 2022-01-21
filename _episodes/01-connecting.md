@@ -15,7 +15,7 @@ keypoints:
 
 ## Connecting using SSH
 
-The ARCHER2 login address is
+The login address for the full 23-cabinet ARCHER2 system is
 
 ```
 login.archer2.ac.uk
@@ -23,6 +23,15 @@ login.archer2.ac.uk
 {: .language-bash}
 
 Access to ARCHER2 is via SSH using **both** a password and a passphrase-protected SSH key pair.
+
+> ## The 4-cabinet system
+> The ARCHER2 4-cabinet system can be accessed for the time being at
+> ```
+> login-4c.archer2.ac.uk
+> ```
+> {: .language-bash}
+> but this system will be closed in the future.
+{: .callout}
 
 ## Passwords and password policy
 
@@ -111,13 +120,13 @@ Information on how to transfer data efficiently using the above methods is avail
 > > You use the `zip` command to archive the data. The `-r` option is used to perform the operation
 > > recursively on a directory and the `-0` option is used to specify the archive should be uncompressed:
 > > ```
-> > auser@uan01:~> zip -0r large_data_output.zip large_data_output/
+> > auser@ln01:~> zip -0r large_data_output.zip large_data_output/
 > > ```
 > > {: .language-bash}
-> > To verify the archive is valid, you would use the `zip` command again, this time with the `-t` 
+> > To verify the archive is valid, you would use the `zip` command again, this time with the `-T` 
 > > option:
 > > ```
-> > auser@uan01:~> zip -T large_data_output.zip
+> > auser@ln01:~> zip -T large_data_output.zip
 > > ```
 > > {: .language-bash}
 > {: .solution}

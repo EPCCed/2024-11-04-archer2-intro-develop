@@ -22,6 +22,10 @@ you may be interested in the following courses offered by the ARCHER2 service:
 
 * Performance Analysis Workshop
 
+The [Cray Performance Measurement and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_User_Guide_644_S-2376/page/About_the_Cray_Performance_Measurement_and_Analysis_Tools_User_Guide.html)
+and the ARCHER2 [debugging](https://docs.archer2.ac.uk/user-guide/debug/) and
+[profiling](https://docs.archer2.ac.uk/user-guide/profile/) documentation will also be useful.
+
 ## Debugging tools overview
 
 The following debugging tools are available on ARCHER2:
@@ -32,12 +36,13 @@ The following debugging tools are available on ARCHER2:
   unexpected behaviour. Available via ``module load gdb4hpc``.
 * **valgrind4hpc** is a parallel memory debugging tool that aids in detection of memory leaks and
   errors in parallel applications. It aggregates like errors across processes and threads to simply
-  debugging of parallel appliciations.
-<!--* **STAT** generate merged stack traces for parallel applications. Also has visualisation tools.
-* **ATP** scalable core file and backtrace analysis when parallel programs crash.
+  debugging of parallel appliciations. Available via ``module load valgrind4hpc``.
+* **STAT** generate merged stack traces for parallel applications. Also has visualisation tools.
+  Available via ``module load cray-stat``.
+* **ATP** scalable core file and backtrace analysis when parallel programs crash. Available via
+  ``module load atp``.
 * **CCDB** Cray Comparative Debugger. Compare two versions of code side-by-side to analyse differences.
--->
-See [the Cray Performance Measurement and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_User_Guide_644_S-2376/page/About_the_Cray_Performance_Measurement_and_Analysis_Tools_User_Guide.html)
+  Available via ``module load cray-ccdb``.
 
 ## Using gdb4hpc to debug an application
 
@@ -67,22 +72,23 @@ Setup your environment, load and launch ``gdb4hpc``:
 You will get some information about this version of the program and, eventually, you will get a command prompt:
 
 ```
- gdb4hpc 4.5 - Cray Line Mode Parallel Debugger
- With Cray Comparative Debugging Technology.
- Copyright 2007-2019 Cray Inc. All Rights Reserved.
- Copyright 1996-2016 University of Queensland. All Rights Reserved.
- Type "help" for a list of commands.
- Type "help <cmd>" for detailed help about a command.
- dbg all>
+gdb4hpc 4.12 - Cray Line Mode Parallel Debugger
+With Cray Comparative Debugging Technology.
+Copyright 2007-2021 Hewlett Packard Enterprise Development LP.
+Copyright 1996-2016 University of Queensland. All Rights Reserved.
+
+Type "help" for a list of commands.
+Type "help <cmd>" for detailed help about a command.
+dbg all>
 ```
 
 We will use ``launch`` to start an application within gdb4hpc. For now, we want to run our simulation on a single process, so we will type:
 
 ```bash
- dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
+ dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --time=0:10:0 --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
 ```
 
-This will launch an ``srun`` job on one of the compute nodes. The name `my_prog` is a dummy name to which this run-through of the program is linked -- you will not be able to launch another program using this name, and you can use any name you want instead. The number in the brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, `gdb4hpc` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower `gdb4hpc` will be.
+This will launch an ``srun`` job on one of the compute nodes. The name `my_prog` is a dummy name to which this run-through of the program is linked -- you will not be able to launch another program using this name, and you can use any name you want instead. The number in the curly brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, `gdb4hpc` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower `gdb4hpc` will be to launch the tasks once the job has begun.
 
 Once the program is launched, gdb4hpc will load up the program and begin to run it. You will get output to screen something that looks like:
 
@@ -91,8 +97,6 @@ Starting application, please wait...
 Creating MRNet communication network...
 Waiting for debug servers to attach to MRNet communications network...
 Timeout in 400 seconds. Please wait for the attach to complete.
-Number of dbgsrvs connected: [0];  Timeout Counter: [1]
-Number of dbgsrvs connected: [0];  Timeout Counter: [2]
 Number of dbgsrvs connected: [1];  Timeout Counter: [0]
 Finalizing setup...
 Launch complete.
@@ -111,6 +115,7 @@ Once the code is loaded, you can use various commands to move through your code.
 * ``up`` -- Go up one level in the program (*e.g.* from a subroutine back to main).
 * ``print var`` -- Prints the value of variable ``var`` at this point in the code.
 * ``watch var`` -- Like print, but will print whenever a variable changes value.
+* ``backtrace`` -- Prints the stack trace for each process.
 * ``quit`` -- Exits gdb4hpc.
 
 For now, we will look at `list`, `next`, `print`, and `watch`. Running:
@@ -162,10 +167,10 @@ The current value of variable `count` is printed to screen. If we progress the c
 > {: .solution}
 {: .challenge}
 
-Let's now try launching across multiple processes:
+Let's now ``quit`` gdb4hpc, start it again, and try launching across multiple processes:
 
 ```bash
- dbg all> launch -launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{2} ./gdb_exercise
+ dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --time=0:10:0 --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{2} ./gdb_exercise
 ```
 
 > ## Exercise
@@ -179,7 +184,7 @@ Let's `quit` our program, fix that bug, and go back into `gdb4hpc`. Again, we'll
 
 ```bash
  dbg all> release $my_prog
- dbg all> launch -launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
+ dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --reservation=shortqos --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
 ```
 
 This time, instead of `next`, we will use `step` -- this does the same as `next` with the added feature that we can go into functions and subroutines where applicable. As the new bug appears to come from the `sum_even` function, let's see where exactly the program hangs.
@@ -190,6 +195,11 @@ This time, instead of `next`, we will use `step` -- this does the same as `next`
 > > The `i++` should be brought outside of the `if` part of the `while` loop. Changing this will make the code work fully.
 > {: .solution}
 {: .challenge}
+
+There are other ways to run gdb4hpc. For example. you can attach it to a job which is already running if you would like to examine
+its execution. You can also start an interactive session with `salloc` as we saw in the previous session and then `launch` from
+within gdb4hpc directly to the job without having to specify the `--launcher-args` options. This may be more efficient if you need
+to repeatedly restart the executable, as you won't have to wait for nodes to be allocated every time.
 
 ## Profiling tools overview
 
@@ -206,31 +216,33 @@ a number of different components:
 * **Cray Apprentice2** the second-level data analysis tool, used to visualize, manipulate, explore, and compare sets of program performance data in a GUI environment.
 
 
-See [the Cray Performance Measurament and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_Installation_Guide_632_S-2474/page/Use_CrayPat_CrayPat-lite_Apprentice2_or_Reveal.html)
+See the [Cray Performance Measurement and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_User_Guide_644_S-2376/page/About_the_Cray_Performance_Measurement_and_Analysis_Tools_User_Guide.html).
 
 ## Using CrayPat Lite to profile an application
+
 Let's grab and unpack a toy code for training purposes. To do this, we'll use `wget`.
 
 ```
-auser@uan01:~>  wget {{site.url}}{{site.baseurl}}/files/nbody-par.tar.gz
+auser@ln01:~>  wget {{site.url}}{{site.baseurl}}/files/nbody-par.tar.gz
 ```
 {: .language-bash}
 
 To extract the files from a `.tar.gz` file, we run the command `tar -xvf filename.tar.gz`:
 ```
-auser@uan01:~> tar -xzf nbody-par.tar.gz
+auser@ln01:~> tar -xzf nbody-par.tar.gz
 ```
 {: .bash}
 
 Load CrayPat-lite module (`perftools-lite`)
 ```
-auser@uan01:~> module load perftools-lite
+auser@ln01:~> module load perftools-lite
 ```
 {: .bash}
 
-and compile the application normally
+and move into the new ``nbody-par`` directory and compile the application normally
 ```
-auser@uan01:~> make
+auser@ln01:~> cd nbody-par
+auser@ln01:~/nbody-par> make
 ```
 {: .bash}
 ```
@@ -243,26 +255,26 @@ INFO: creating the PerfTools-instrumented executable 'nbody-parallel.exe' (lite-
 ```
 {: .output}
 
-As the output of the compilation says, the executable `nbody-parallel.exe` has been instrumented by CrayPat-lite and therefore we can now run the application using the Slurm script provided with the source code.
+As the output of the compilation says, the executable `nbody-parallel.exe` binary has been instrumented by CrayPat-lite. A batch script called ``run.slurm`` is in the directory. Change the account to ``{{site.gid}}`` so it can be run. You can also use the course node reservation (check with the instructor or helpers) or the ``short`` QoS.
 
 Once our job has finished, we can get the performance data summarized at the end of the job STDOUT.
 ```
-auser@uan01:~> less slurm-out.txt
+auser@ln01:~/nbody-par> less slurm-out.txt
 ```
  {: .language-bash}
 ```
-CrayPat/X:  Version 20.05.0 Revision accedbc7b  04/20/20 21:41:33
-
+CrayPat/X:  Version 21.02.0 Revision ee5549f05  01/13/21 04:13:58
+.
 N Bodies =                     10240
 Timestep dt =                  2.000e-01
 Number of Timesteps =          10
 Number of MPI Ranks =          64
 BEGINNING N-BODY SIMULATION
 SIMULATION COMPLETE
-Runtime [s]:              6.759e+00
-Runtime per Timestep [s]: 6.759e-01
+Runtime [s]:              3.295e-01
+Runtime per Timestep [s]: 3.295e-02
 interactions:             10
-Interactions per sec:     1.551e+08
+Interactions per sec:     3.182e+09
 
 #################################################################
 #                                                               #
@@ -270,19 +282,20 @@ Interactions per sec:     1.551e+08
 #                                                               #
 #################################################################
 
-CrayPat/X:  Version 20.05.0 Revision accedbc7b  04/20/20 21:41:33
+CrayPat/X:  Version 21.02.0 Revision ee5549f05  01/13/21 04:13:58
 Experiment:                  lite  lite-samples
 Number of PEs (MPI ranks):     64
 Numbers of PEs per Node:       64
 Numbers of Threads per PE:      1
 Number of Cores per Socket:    64
-Execution start time:  Wed Jul 22 14:01:02 2020
-System name and speed:  nid000003  2.250 GHz (nominal)
-AMD Rome       CPU  Family: 23  Model: 49  Stepping:  0
+Execution start time:  Tue Nov 23 15:18:45 2021
+System name and speed:  nid005209  2.250 GHz (nominal)
+AMD   Rome                 CPU  Family: 23  Model: 49  Stepping:  0
 Core Performance Boost:  All 64 PEs have CPB capability
-Avg Process Time:     7.84 secs
-High Memory:       3,623.9 MiBytes     56.6 MiBytes per PE
-I/O Write Rate:   9.319690 MiBytes/sec
+
+Avg Process Time:       0.47 secs
+High Memory:         4,326.8 MiBytes     67.6 MiBytes per PE
+I/O Write Rate:   701.173609 MiBytes/sec
 
 
 ...lots of output trimmed...
@@ -290,25 +303,28 @@ I/O Write Rate:   9.319690 MiBytes/sec
 ```
 {: .output}
 
+Instructions are given at the end of the output on how to see more detailed results and how to
+visualise them graphically with the Cray Apprentice2 tool.
+
 ## Using CrayPat to profile an application
 
 We are now going to use the full CrayPat tools. To do so, we first need to load the required modules
 
 ```
-auser@uan01:~>  module unload perftools-lite
-auser@uan01:~>  module load perftools
+auser@ln01:~/nbody-par>  module unload perftools-lite
+auser@ln01:~/nbody-par>  module load perftools
 ```
 {: .language-bash}
 
 After loading the modules, we need to recompile the application
 ```
-auser@uan01:~> make clean; make
+auser@ln01:~/nbody-par> make clean; make
 ```
 {: .bash}
 
 Once the application has been built, we need to instrument the binary. We do this with `pat_build`
 ```
-auser@uan01:~> pat_build nbody-parallel.exe
+auser@ln01:~/nbody-par> pat_build nbody-parallel.exe
 ```
 {: .bash}
 
@@ -326,201 +342,213 @@ After the job has finished, files are stored in an experiment data directory wit
 * `node`: The physical node ID upon which the rank zero process was executed
 * `[s|t]`: The type of experiment performed, either `s` for sampling or `t` for tracing
 
-for example, in our case a new directory called `nbody-parallel.exe+pat+189193-3s` could be created. It is now time to obtain the performance report. We do this with the `pat_report` command and the new created directory
+for example, in our case a new directory called `nbody-parallel.exe+pat+192028-1341s` could be created. It is now time to obtain the performance report. We do this with the `pat_report` command and the new created directory
 ```
-auser@uan01:~> pat_report nbody-parallel.exe+pat+189193-3s
+auser@ln01:~/nbody-par> pat_report nbody-parallel.exe+pat+192028-1341s
 ```
 {: .bash}
 
 This will command generate a full performance report and can generate a large amount of data, so you may wish to capture the data in an output file, either using a shell redirect like `>`,  or we could choose to see only some reports. If we want to see only a profile report by function we can do
 
 ```
-auser@uan01:~> pat_report -v -O samp_profile nbody-parallel.exe+pat+189193-3s/
+auser@ln01:~/nbody-par> pat_report -v -O samp_profile nbody-parallel.exe+pat+192028-1341s
 ```
 {: .bash}
 
 ```
+...run details...
+
 Table 1:  Profile by Function
 
-  Samp% |    Samp |  Imb. |  Imb. | Group
-        |         |  Samp | Samp% |  Function
-        |         |       |       |   PE=HIDE
+  Samp% | Samp | Imb. |  Imb. | Group
+        |      | Samp | Samp% |  Function
+        |      |      |       |   PE=HIDE
 
- 100.0% | 1,232.9 |    -- |    -- | Total
-|-----------------------------------------------------------
-|  65.7% |   810.6 |    -- |    -- | MPI
-||----------------------------------------------------------
-||  29.5% |   364.3 |  17.7 |  4.7% | MPI_File_write_all
-||  21.6% |   265.7 | 138.3 | 34.8% | MPI_Sendrecv
-||  12.8% |   158.2 | 113.8 | 42.5% | MPI_File_set_view
-||   1.8% |    22.2 |   5.8 | 21.0% | MPI_File_open
-||==========================================================
-|  27.2% |   335.0 |    -- |    -- | USER
-||----------------------------------------------------------
-||  26.9% |   331.5 | 138.5 | 29.9% | compute_forces_multi_set
-||==========================================================
-|   7.0% |    86.8 |  20.2 | 19.2% | MATH
-||----------------------------------------------------------
-||   7.0% |    86.8 |  20.2 | 19.2% | sqrt
-|===========================================================
+ 100.0% | 33.4 |   -- |    -- | Total
+|-------------------------------------------------------
+|  86.4% | 28.8 |  1.2 |  3.9% | USER
+||------------------------------------------------------
+||  86.4% | 28.8 |  1.2 |  3.9% | compute_forces_multi_set
+||======================================================
+|  12.0% |  4.0 |   -- |    -- | MPI
+||------------------------------------------------------
+||   4.3% |  1.4 |  1.6 | 52.9% | MPI_File_write_all
+||   2.9% |  1.0 |  0.0 |  1.6% | MPI_Recv
+||   2.9% |  1.0 |  0.0 |  3.2% | MPI_File_open
+||   1.8% |  0.6 |  2.4 | 81.0% | MPI_Sendrecv
+||======================================================
+|   1.6% |  0.5 |  1.5 | 74.6% | MATH
+||------------------------------------------------------
+||   1.6% |  0.5 |  1.5 | 74.6% | sqrt
+|=======================================================
+
+...more run details...
 ```
 {: .output}
 
 The table above shows the results from sampling the application. Program functions are separated out into different types, `USER` functions are those defined by the application, `MPI` functions contains the time spent in MPI library functions, `ETC` functions are generally library or miscellaneous functions included. `ETC` functions can include a variety of external functions, from mathematical functions called in by the library to system calls.
 
-The raw number of samples for each code section is shown in the second column and the number as an absolute percentage of the total samples in the first. The third column is a measure of the imbalance between individual processors being sampled in this routine and is calculated as the difference between the average number of samples over all processors and the maximum samples an individual processor was in this routine.
+The raw number of samples for each code section is shown in the second column and the number as an absolute percentage of the total samples in the first. The third column is a measure of the imbalance between individual processors being sampled in this routine and is calculated as the difference between the average number of samples over all processors and the maximum samples an individual processor gave in this routine.
 
 Another useful table can be obtained profiling by Group, Function, and Line
 ```
-auser@uan01:~> pat_report -v -O samp_profile+src nbody-parallel.exe+pat+189193-3s/
+auser@ln01:~/nbody-par> pat_report -v -O samp_profile+src nbody-parallel.exe+pat+192028-1341s
 ```
 {: .bash}
 
 ```
-Table 3:  Profile by Group, Function, and Line
+...run details...
 
-  Samp% |    Samp | Imb. |  Imb. | Group
-        |         | Samp | Samp% |  Function
-        |         |      |       |   Source
-        |         |      |       |    Line
-        |         |      |       |     PE=HIDE
+Table 1:  Profile by Group, Function, and Line
 
- 100.0% | 1,232.9 |   -- |    -- | Total
-|-------------------------------------------------------------------
-|  65.7% |   810.6 |   -- |    -- | MPI
-||------------------------------------------------------------------
-||  29.5% |   364.3 |   -- |    -- | MPI_File_write_all
-||  21.6% |   265.7 |   -- |    -- | MPI_Sendrecv
-|||-----------------------------------------------------------------
-|||=================================================================
-||  12.8% |   158.2 |   -- |    -- | MPI_File_set_view
-||   1.8% |    22.2 |  5.8 | 21.0% | MPI_File_open
-||==================================================================
-|  27.2% |   335.0 |   -- |    -- | USER
-||------------------------------------------------------------------
-||  26.9% |   331.5 |   -- |    -- | compute_forces_multi_set
-3|        |         |      |       |  z19/lcebaman/nbody-par/parallel.c
-||||----------------------------------------------------------------
-4|||   2.7% |    32.7 | 32.3 | 50.5% | line.142
-4|||   5.7% |    70.8 | 16.2 | 18.9% | line.144
-4|||   4.5% |    55.7 | 21.3 | 28.1% | line.145
-4|||   6.3% |    77.6 | 21.4 | 22.0% | line.148
-4|||   3.9% |    47.9 | 17.1 | 26.8% | line.149
-||||================================================================
-||==================================================================
-|   7.0% |    86.8 | 20.2 | 19.2% | MATH
-||------------------------------------------------------------------
-||   7.0% |    86.8 | 20.2 | 19.2% | sqrt
-|===================================================================
+  Samp% | Samp | Imb. |  Imb. | Group
+        |      | Samp | Samp% |  Function
+        |      |      |       |   Source
+        |      |      |       |    Line
+        |      |      |       |     PE=HIDE
+
+ 100.0% | 33.4 |   -- |    -- | Total
+|--------------------------------------------------------------
+|  86.4% | 28.8 |   -- |    -- | USER
+||-------------------------------------------------------------
+||  86.4% | 28.8 |   -- |    -- | compute_forces_multi_set
+3|        |      |      |       |  work/ta043/nbody-par/parallel.c
+||||-----------------------------------------------------------
+4|||   3.6% |  1.2 |  2.8 | 70.6% | line.138
+4|||   2.1% |  0.7 |  2.3 | 77.8% | line.140
+4|||   1.6% |  0.5 |  2.5 | 83.1% | line.141
+4|||   1.1% |  0.4 |  1.6 | 83.3% | line.142
+4|||   2.6% |  0.9 |  2.1 | 72.5% | line.144
+4|||   3.5% |  1.2 |  2.8 | 72.2% | line.145
+4|||   1.5% |  0.5 |  1.5 | 77.0% | line.147
+4|||  29.7% |  9.9 |  6.1 | 38.7% | line.148
+4|||  18.2% |  6.1 |  4.9 | 45.3% | line.149
+4|||  11.8% |  3.9 |  5.1 | 57.1% | line.150
+4|||  10.5% |  3.5 |  4.5 | 57.1% | line.151
+||||===========================================================
+||=============================================================
+|  12.0% |  4.0 |   -- |    -- | MPI
+||-------------------------------------------------------------
+||   4.3% |  1.4 |  1.6 | 52.9% | MPI_File_write_all
+||   2.9% |  1.0 |  0.0 |  1.6% | MPI_Recv
+||   2.9% |  1.0 |  0.0 |  3.2% | MPI_File_open
+||   1.8% |  0.6 |  2.4 | 81.0% | MPI_Sendrecv
+||=============================================================
+|   1.6% |  0.5 |  1.5 | 74.6% | MATH
+||-------------------------------------------------------------
+||   1.6% |  0.5 |  1.5 | 74.6% | sqrt
+|==============================================================
+
+...more run details...
 ```
 {: .output}
 
 If we want to profile by Function and Callers, with Line Numbers then
 ```
-auser@uan01:~> pat_report -O ca+src nbody-parallel.exe+pat+189193-3s/
+auser@ln01:~/nbody-par> pat_report -O ca+src nbody-parallel.exe+pat+192028-1341s
 ```
 {: .bash}
 
 ```
+...run details...
+
 Table 1:  Profile by Function and Callers, with Line Numbers
 
-  Samp% |    Samp | Group
-        |         |  Function
-        |         |   Caller
-        |         |    PE=HIDE
+  Samp% | Samp | Group
+        |      |  Function
+        |      |   Caller
+        |      |    PE=HIDE
 
- 100.0% | 1,232.9 | Total
-|-----------------------------------------------------------------
-|  65.7% |   810.6 | MPI
-||----------------------------------------------------------------
-||  29.5% |   364.3 | MPI_File_write_all
-3|        |         |  distributed_write_timestep:parallel.c:line.218
-4|        |         |   run_parallel_problem:parallel.c:line.73
-5|        |         |    __real_main:main.c:line.81
-6|        |         |     main
-||  21.6% |   265.7 | MPI_Sendrecv
-3|  21.5% |   265.7 |  run_parallel_problem:parallel.c:line.75
-4|        |         |   __real_main:main.c:line.81
-5|        |         |    main
-||  12.8% |   158.2 | MPI_File_set_view
-3|        |         |  distributed_write_timestep:parallel.c:line.216
-4|        |         |   run_parallel_problem:parallel.c:line.73
-5|        |         |    __real_main:main.c:line.81
-6|        |         |     main
-||   1.8% |    22.2 | MPI_File_open
-3|        |         |  run_parallel_problem:parallel.c:line.59
-4|        |         |   __real_main:main.c:line.81
-5|        |         |    main
-||================================================================
-|  27.2% |   335.0 | USER
-||----------------------------------------------------------------
-||  26.9% |   331.5 | compute_forces_multi_set
-3|  26.9% |   331.3 |  run_parallel_problem:parallel.c:line.81
-4|        |         |   __real_main:main.c:line.81
-5|        |         |    main
-||================================================================
-|   7.0% |    86.8 | MATH
-||----------------------------------------------------------------
-||   7.0% |    86.8 | sqrt
-3|        |         |  run_parallel_problem:parallel.c:line.81
-4|        |         |   __real_main:main.c:line.81
-5|        |         |    main
-|=================================================================
+ 100.0% | 33.4 | Total
+|--------------------------------------------------------------
+|  86.4% | 28.8 | USER
+||-------------------------------------------------------------
+||  86.4% | 28.8 | compute_forces_multi_set
+3|        |      |  run_parallel_problem:parallel.c:line.81
+4|        |      |   main:main.c:line.81
+||=============================================================
+|  12.0% |  4.0 | MPI
+||-------------------------------------------------------------
+||   4.3% |  1.4 | MPI_File_write_all
+3|        |      |  distributed_write_timestep:parallel.c:line.218
+4|        |      |   run_parallel_problem:parallel.c:line.73
+5|        |      |    main:main.c:line.81
+||   2.9% |  1.0 | MPI_Recv
+3|        |      |  run_parallel_problem:parallel.c:line.59
+4|        |      |   main:main.c:line.81
+||   2.9% |  1.0 | MPI_File_open
+3|        |      |  run_parallel_problem:parallel.c:line.59
+4|        |      |   main:main.c:line.81
+||   1.8% |  0.6 | MPI_Sendrecv
+3|        |      |  run_parallel_problem:parallel.c:line.75
+4|        |      |   main:main.c:line.81
+||=============================================================
+|   1.6% |  0.5 | MATH
+||-------------------------------------------------------------
+||   1.6% |  0.5 | sqrt
+3|        |      |  run_parallel_problem:parallel.c:line.81
+4|        |      |   main:main.c:line.81
+|==============================================================
+
+...more run details...
 ```
 {: .output}
 
-The reports will generate two more files, one with the extension `.ap2` which holds the same data as the report data (`.xf`) but in the post processed form. The other file is called `build-options.apa` and is a text file with a suggested configuration for generating a traced experiment. You are welcome and encouraged to review this file and modify its contents in subsequent iterations, however in this first case we will continue with the defaults.
+The run will generate two more files in the output directory, one with the extension `.ap2` which holds the same data as the report data (`.xf`) but in the post processed form. The other file is called `build-options.apa` and is a text file with a configuration for generating a traced (as opposed to sampled) experiment. The APA (Automatic Program Analysis) configuration is a targeted trace, based on the results from our previous sampled experiment. You are welcome and encouraged to review this file and modify its contents in subsequent iterations, however in this first case we will continue with the defaults.
 
 This `build-options.apa` file acts as the input to the `pat_build` command and is supplied as the argument to the `-O` flag.
 
 ```
-pat_build -O nbody-parallel.exe+pat+189193-3s/build-options.apa
+pat_build -O nbody-parallel.exe+pat+192028-1341s/build-options.apa
 ```
 {: .bash}
 
 This will produce a third binary with extension `+apa`. This binary should once again be run on the back end, so the submission script should be modified and the name of the executable changed to `nbody-parallel.exe+apa`.
-Similarly to the sampling process, a new directory called `exe+apa+PID-node[s|t]` will be generated by the application, which should be processed by the `pat_report` tool. The output format of this new directory is similar to the one obtained with sampling, but now this includes `apa` and `t` to indicate that this is a tracing experiment. For instance, with our code we could get a new directory called `nbody-parallel.exe+apa+69935-4t`.
+Similarly to the sampling process, a new directory called `exe+apa+PID-node[s|t]` will be generated by the application, which should be processed by the `pat_report` tool. The output format of this new directory is similar to the one obtained with sampling, but now this includes `apa` and `t` to indicate that this is a tracing experiment. For instance, with our code we could get a new directory called `nbody-parallel.exe+apa+114297-5209t`.
 ```
-auser@uan01:~> pat_report nbody-parallel.exe+apa+69935-4t
+auser@ln01:~/nbody-par> pat_report nbody-parallel.exe+apa+114297-5209t
 ```
 {: .bash}
 
 ```
+...run details...
+
 Table 1:  Profile by Function Group and Function
 
   Time% |     Time |     Imb. |  Imb. | Calls | Group
         |          |     Time | Time% |       |  Function
         |          |          |       |       |   PE=HIDE
 
- 100.0% | 6.653825 |       -- |    -- | 679.0 | Total
+ 100.0% | 0.402275 |       -- |    -- | 690.0 | Total
 |-----------------------------------------------------------------
-|  64.3% | 4.277528 | 1.785103 | 29.9% |   1.0 | USER
+|  71.3% | 0.286987 | 0.003933 |  1.4% |   1.0 | USER
 ||----------------------------------------------------------------
-||  64.3% | 4.277528 | 1.785103 | 29.9% |   1.0 | __real_main
+||  71.3% | 0.286987 | 0.003933 |  1.4% |   1.0 | main
 ||================================================================
-|  31.4% | 2.090579 |       -- |    -- | 675.0 | MPI
+|  27.6% | 0.111100 |       -- |    -- | 686.0 | MPI
 ||----------------------------------------------------------------
-||  21.4% | 1.425524 | 0.485545 | 25.8% | 640.0 | MPI_Sendrecv
-Processing step 11 of 11
-||   6.2% | 0.410421 | 0.404390 | 50.4% |  10.0 | MPI_File_set_view
-||   1.5% | 0.100346 | 0.001022 |  1.0% |  10.0 | MPI_File_write_all
-||   1.3% | 0.085070 | 0.000966 |  1.1% |   1.0 | MPI_File_open
+||  14.0% | 0.056473 | 0.003279 |  5.6% |   1.0 | MPI_Recv
+||   9.2% | 0.037024 | 0.000008 |  0.0% |  21.0 | MPI_File_write_all
+||   2.3% | 0.009178 | 0.000001 |  0.0% |   1.0 | MPI_File_open
+||   1.6% | 0.006504 | 0.000890 | 12.2% | 640.0 | MPI_Sendrecv
 ||================================================================
-|   4.3% | 0.285718 |       -- |    -- |   3.0 | MPI_SYNC
-||----------------------------------------------------------------
-||   4.0% | 0.268344 | 0.266963 | 99.5% |   1.0 | MPI_Init(sync)
+|   1.0% | 0.004188 |       -- |    -- |   3.0 | MPI_SYNC
 |=================================================================
+
+...more tables and details...
 ```
 {: .output}
 
-The new table above is the version generated from tracing data instead of the previous sampling data table. This version makes true timing information is available (averages per processor) and the number of times each function is called. Timings are more accurate and features like the number of calls are available.
+The new table above is the version generated from tracing data instead of the previous sampling data table. This version makes available true timing information (average per processor) and the number of times each function is called.
 
 We can also get very important performance data from the hardware (HW) counters
 ```
-auser@uan01:~> pat_report -v -O profile+hwpc nbody-parallel.exe+apa+69935-4t
+auser@ln01:~/nbody-par> pat_report -v -O profile+hwpc nbody-parallel.exe+apa+114297-5209t
 ```
 {: .bash}
 ```
+...run details...
+
 Table 1:  Profile by Function Group and Function
 
 Group / Function / PE=HIDE
@@ -529,30 +557,42 @@ Group / Function / PE=HIDE
 ==============================================================================
   Total
 ------------------------------------------------------------------------------
-  Time%                                                  100.0%
-  Time                                                 6.653825 secs
-  Imb. Time                                                  -- secs
-  Imb. Time%                                                 --
-  Calls                         102.044 /sec              679.0 calls
-  PAPI_TOT_INS                    0.272G/sec  1,807,999,565.422 instr
-  PAPI_TOT_CYC                                2,617,561,820.844 cycles
-  L2_LATENCY                                          8,358,045 cycles
-  REQUESTS_TO_L2_GROUP1:L2_HW_PF  0.035M/sec            230,983 ops
-  REQUESTS_TO_L2_GROUP1:
-    RD_BLK_L:RD_BLK_X:
-    LS_RD_BLK_C_S:
-    CACHEABLE_IC_READ:
-    CHANGE_TO_X:PREFETCH_L2:
-    L2_HW_PF                      0.370M/sec          2,463,366 ops
-  L2 Avg Latency                                          13.57 cycles
-  HW L2 Prefetch / L2 Requests                             9.4%
-  Instr per cycle                                          0.69 inst/cycle
-  MIPS                        17,390.30M/sec
-  Average Time per Call                                0.009800 secs
-  CrayPat Overhead : Time          0.2%
+  Time%                                        100.0%
+  Time                                       0.402275 secs
+  Imb. Time                                        -- secs
+  Imb. Time%                                       --
+  Calls                           0.002M/sec    690.0 calls
+  CORE_TO_L2_CACHEABLE_REQUEST_ACCESS_STATUS:
+    LS_RD_BLK_C                   0.402M/sec  161,687 req
+  L2_PREFETCH_HIT_L2              0.150M/sec   60,526 hits
+  L2_PREFETCH_HIT_L3              0.034M/sec   13,861 hits
+  REQUESTS_TO_L2_GROUP1:L2_HW_PF  0.599M/sec  240,888 ops
+  REQUESTS_TO_L2_GROUP1:RD_BLK_X  0.386M/sec  155,439 ops
+  Cache Lines PF from OffCore     0.448M/sec  180,362 lines
+  Cache Lines PF from Memory      0.414M/sec  166,501 lines
+  Cache Lines Requested from
+    Memory                        0.371M/sec  149,261 lines
+  Write Memory Traffic GBytes     0.017G/sec     0.01 GB
+  Read Memory Traffic GBytes      0.050G/sec     0.02 GB
+  Memory traffic GBytes           0.067G/sec     0.03 GB
+  Memory Traffic / Nominal Peak                  0.0%
+  Average Time per Call                      0.000583 secs
+  CrayPat Overhead : Time          0.1%
 ==============================================================================
+
+...lots more information...
 ```
 {: .output}
+
+Finally, you can examine the results of any CrayPat run (including CrayPat-lite) graphically using Apprentice2.
+For this you will need to log in with X11-forwarding enabled -- on Linux and macOS this means logging in with
+the `-X` option passed to `ssh`. Then, with the `perftools-base` module loaded, we are able to examine the
+results of our traced run as follows:
+```
+auser@ln01:~/nbody-par> app2 nbody-parallel.exe+apa+114297-5209t
+```
+{: .bash}
+
 
 ## Getting help with debugging and profiling tools
 

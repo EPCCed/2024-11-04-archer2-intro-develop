@@ -17,14 +17,15 @@ keypoints:
 
 ## What can I do on the login nodes? What shouldn't I do?
 
-The login node is often very busy managing lots of users logged in, creating and editing files
-and compiling software. It does not have any extra space to run computational work and you will
-get poor performance if you try to use it for computational work.
+The login nodes are often very busy managing lots of users logged in, creating and editing files
+and compiling software. They do not have any extra space to run computational work and you will
+get poor performance if you try to use it for computational work. Notably, parallel tasks
+cannot be launched on the login nodes.
 
-Do not run jobs on the login node (though quick tests are generally fine). A “quick test” is
-generally anything that uses less than 5 minutes of time. If you
+You should not run long, CPU-heavy tasks on the login nodes (though quick tests are generally fine).
+A “quick test” is generally anything that uses less than 5 minutes of time. If you
 use too much resource then other users on the login node may start to be affected - their
-login sessions will start to run slowly and may even freeze or hang. 
+login sessions will start to run slowly and may even freeze or hang.
 
 > ## Login nodes are a shared resource
 >
