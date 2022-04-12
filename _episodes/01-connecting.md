@@ -24,15 +24,6 @@ login.archer2.ac.uk
 
 Access to ARCHER2 is via SSH using **both** a password and a passphrase-protected SSH key pair.
 
-> ## The 4-cabinet system
-> The ARCHER2 4-cabinet system can be accessed for the time being at
-> ```
-> login-4c.archer2.ac.uk
-> ```
-> {: .language-bash}
-> but this system will be closed in the future.
-{: .callout}
-
 ## Passwords and password policy
 
 When you first get an ARCHER2 account, you will get a single-use password from the 
