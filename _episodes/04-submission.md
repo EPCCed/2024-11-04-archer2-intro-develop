@@ -131,7 +131,6 @@ nid001007      1  standard   allocated 256    2:64:2 227328        0      1 COMP
 > > ```
 > > More information on what `sinfo` can display can be found in the `sinfo` manual page, i.e. `man sinfo`
 > {: .solution}
-
 {: .challenge}
 
 ## Using batch job submission scripts
@@ -187,9 +186,10 @@ We will discuss the `srun` command further below.
 > ## Using a reservation
 > For this course we have a reservation in place, a set of nodes that have been set aside specifically
 > for our use so we can avoid waiting in the queue. If you want to use it, you will need to use
-> the login account you created under the {{site.gid}} project, and you should add the following line
-> to your job scripts:
+> the login account you created under the {{site.gid}} project,and you will need to set the QoS to
+> `reservation` and specify the reservation name itself in your job scripts:
 > ```
+> #SBATCH --qos=reservation
 > #SBATCH --reservation=<reservation-name>
 > ```
 > {: .language-bash}
@@ -212,14 +212,14 @@ Submitted batch job 23996
 
 Slurm reports back with the job ID for the job you have submitted
 
-> ## What are the default for `sbatch` options?
+> ## What are the defaults for `sbatch` options?
 > If you do not specify job options, what are the defaults for Slurm on ARCHER2? Submit jobs to find out
 > what the defaults are for:
 > 1. Partition and QoS?
 > 2. Budget (or Account) the job is charged to?
 > 3. Tasks per node?
 > 4. Number of nodes?
-> 5. Walltime? (This one is hard!)
+> 5. Walltime? (This one is hard! Try using the `sacct` command -- check `man sacct` to find out how to use it.)
 > 
 > > ## Solution
 > > 
