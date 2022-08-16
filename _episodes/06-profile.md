@@ -1,205 +1,24 @@
 ---
-title: "Debugging and profiling on ARCHER2"
+title: "Profiling on ARCHER2"
 teaching: 30
-exercises: 30
-start: True
+exercises: 15
 questions:
-- "What debugging tools are available on ARCHER2 and how can I access them?"
 - "What profiling tools are available on ARCHER2 and how can I access them?"
 - "Where can I find more documentation on and get help with these tools?"
 objectives:
-- "Know what tools are available to help you debug and profile parallel applications on ARCHER2."
+- "Know what tools are available to help you profile parallel applications on ARCHER2."
 - "Know where to get further help."
 keypoints:
-- "The main debugging tool on ARCHER2 is *gdb4hpc*"
 - "The main profiling tool on ARCHER2 is *CrayPat*"
 ---
 
-ARCHER2 has a range of debugging and profiling software available. In this section we provide a brief
+ARCHER2 has a range of profiling software available. In this section we provide a brief
 overview of the tools available, their applicability and links to more information. A detailed tutorial
-on the use of these tools is beyond the scope of this course but if you are interested in this, then
-you may be interested in the following courses offered by the ARCHER2 service:
+on profiling is beyond the scope of this course but if you are interested in this, then
+you may be interested in the Performance Analysis Workshop course offered by the ARCHER2 service.
 
-* Performance Analysis Workshop
-
-The [Cray Performance Measurement and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_User_Guide_644_S-2376/page/About_the_Cray_Performance_Measurement_and_Analysis_Tools_User_Guide.html)
-and the ARCHER2 [debugging](https://docs.archer2.ac.uk/user-guide/debug/) and
-[profiling](https://docs.archer2.ac.uk/user-guide/profile/) documentation will also be useful.
-
-## Debugging tools overview
-
-The following debugging tools are available on ARCHER2:
-
-* **gdb4hpc** is a command-line tool working similarly to [gdb](https://www.gnu.org/software/gdb/)
-  that allows users to debug parallel programs. It can launch parallel programs or attach to ones
-  already running and allows the user to step through the execution to identify the causes of any
-  unexpected behaviour. Available via ``module load gdb4hpc``.
-* **valgrind4hpc** is a parallel memory debugging tool that aids in detection of memory leaks and
-  errors in parallel applications. It aggregates like errors across processes and threads to simply
-  debugging of parallel appliciations. Available via ``module load valgrind4hpc``.
-* **STAT** generate merged stack traces for parallel applications. Also has visualisation tools.
-  Available via ``module load cray-stat``.
-* **ATP** scalable core file and backtrace analysis when parallel programs crash. Available via
-  ``module load atp``.
-* **CCDB** Cray Comparative Debugger. Compare two versions of code side-by-side to analyse differences.
-  Available via ``module load cray-ccdb``.
-
-## Using gdb4hpc to debug an application
-
-For this exercise, we'll be debugging a short program using gdb4hpc. To start, we'll grab a copy of a buggy code from ARCHER2:
-
-```bash
-wget {{site.url}}{{site.baseurl}}/files/gdb4hpc_exercise.c
-```
-
-You can look at the code if you want -- you might even be able to debug it by inspection (but that defeats the purpose of this exercise). When you're ready, compile the code using the C compiler wrappers and the debugging flag `-g`:
-
-```bash
- cc -g gdb4hpc_exercise.c -o gdb_exercise
- ```
-
-You can choose a different name for your executable, but I'll be using `gdb_exercise` through this exercise for consistency -- if you use a different name, make the appropriate change wherever you see `gdb_exercise`.
-
-We'll be using ``gdb4hpc`` to go through this program and see where errors might arise.
-
-Setup your environment, load and launch ``gdb4hpc``:
-
-```bash
- module load gdb4hpc
- gdb4hpc
-```
-
-You will get some information about this version of the program and, eventually, you will get a command prompt:
-
-```
-gdb4hpc 4.12 - Cray Line Mode Parallel Debugger
-With Cray Comparative Debugging Technology.
-Copyright 2007-2021 Hewlett Packard Enterprise Development LP.
-Copyright 1996-2016 University of Queensland. All Rights Reserved.
-
-Type "help" for a list of commands.
-Type "help <cmd>" for detailed help about a command.
-dbg all>
-```
-
-We will use ``launch`` to start an application within gdb4hpc. For now, we want to run our simulation on a single process, so we will type:
-
-```bash
- dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --time=0:10:0 --tasks-per-node=1 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{1} ./gdb_exercise
-```
-
-This will launch an ``srun`` job for ``gdb_exercise`` on one of the compute nodes. The name ``my_prog`` will be used by ``gdb4hpc`` as a reference to this particular run of the program -- you will not be able to launch another program using this name, but you can use any name you want instead. Once the run is started, you can reference it by prepending it with a ``$`` sign, so ``$my_prog`` in this case. The number in the curly brackets ``{1}`` indicates the number of processes this job will be using (it's  1 here). You could use a larger number if you wanted. If you call for more processes than available on a single compute node, ``gdb4hpc`` will launch the program on an appropriate number of nodes. Note though that the more cores you ask for, the slower ``gdb4hpc`` will be to launch the tasks once the job has begun. We use ``--launcher-args`` to pass all the ``SBATCH`` options we would normally provide in a job script through to the job launcher.
-
-Once the program is launched, gdb4hpc will load up the program and begin to run it. You will get output to screen something that looks like:
-
-```
-Starting application, please wait...
-Creating MRNet communication network...
-Waiting for debug servers to attach to MRNet communications network...
-Timeout in 400 seconds. Please wait for the attach to complete.
-Number of dbgsrvs connected: [1];  Timeout Counter: [0]
-Finalizing setup...
-Launch complete.
-my_prog{0}: Initial breakpoint, main at /PATH/TO/gdb4hpc_exercise.c:9
-```
-
-The line number at which the initial breakpoint is made (in the above example,
-line 9) corresponds to the first line within the `main` function.
-
-Once the code is loaded, you can use various commands to move through your code. The following lists and describes some of the most useful ones:
-
-* ``help`` -- Lists all gdb4hpc commands. You can run ``help COMMAND_NAME`` to learn more about a specific command (*e.g.* ``help launch`` will tell you about the launch command
-* ``list`` -- Will show the current line of code and the 9 lines following. Repeated use of ``list`` will move you down the code in ten-line chunks.
-* ``next`` -- Will jump to the next step in the program for each process and output which line of code each process is on. It will not enter subroutines. Note that there is no reverse-step in gdb4hpc.
-* ``step`` -- Like ``next``, but this will step into subroutines.
-* ``up`` -- Go up one level in the program (*e.g.* from a subroutine back to main).
-* ``print var`` -- Prints the value of variable ``var`` at this point in the code.
-* ``watch var`` -- Like print, but will print whenever a variable changes value.
-* ``backtrace`` -- Prints the stack trace for each process.
-* ``quit`` -- Exits gdb4hpc.
-
-For now, we will look at `list`, `next`, `print`, and `watch`. Running:
-
-```bash
- dbg all> list
-```
-
-should output the first 10 lines of `main`:
-
-```
- my_prog{0}: 9
- my_prog{0}: 10	  // Initiallise MPI environment
- my_prog{0}: 11	  MPI_Init(NULL,NULL);
- my_prog{0}: 12
- my_prog{0}: 13	  // Get processor rank
- my_prog{0}: 14	  int rank;
- my_prog{0}: 15	  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
- my_prog{0}: 16
- my_prog{0}: 17	  int count = rank + 1;
- my_prog{0}: 18
-```
-
-Repeating `list` will bring show you the next 10 lines, *etc.*.
-
-At the moment, we are at the start of the program. By running `next`, we will move to the next executable part of the program@
-
-```bash
- dbg all> next
-```
-```
- my_prog{0}: main at /PATH/TO/gdb4hpc_exercise.c:13
-```
-
-Running `list` again will output the ten lines from 11-20. We can jump forward multiple lines by running `next N` -- by replacing *N* with a number, we will jump down *N* executable lines within our code. The `next` command will not allow us to move from one subroutine or function to another.
-
-We can see on line 15 that there is a variable `count` about to be set. If we type:
-
-```bash
- dbg all> print count
-```
-
-The current value of variable `count` is printed to screen. If we progress the code past line 15 and print this variable value again, it has changed to 1. If we wanted, we could have used the `watch` command to get a notification whenever the value of the variable changes.
-
-> ## Exercise
-> What happens if you keep using `next` and `list`?
-> > ## Solution
-> > The program will move from executable line to executable line until it reaches line 18, at which point the program is exited due to an MPI error
-> {: .solution}
-{: .challenge}
-
-Let's now ``quit`` gdb4hpc, start it again, and try launching across multiple processes:
-
-```bash
- dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --time=0:10:0 --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_prog{2} ./gdb_exercise
-```
-
-> ## Exercise
-> The code seems to be trying to send the variable `count` from one process to another. Follow `count` (using `watch`) and see how it changes throughout the code. What happens?
-> > ## Solution
-> > Eventually, both processes will hang: process 0 hangs at an `MPI_Barrier` on line 19 and is stuck waiting for process 1 to reach its barrier. Process 1 is stuck at an `MPI_Recv` on line 21. Further investigation shows that it is waiting for an `MPI_Send` that does not exist -- the source is process 1 (which has not sent anything) and the tag is `1` (there is no MPI_Send with this tag).
-> {: .solution}
-{: .challenge}
-
-Let's `quit` our program, fix that bug, and go back into `gdb4hpc`. Again, we'll launch our program on 2 processes, and again, we'll watch the variable `count`. This time, both processes are able to get the same value for the variable `count`. There is one final part of the code to look at -- process 0 will try to get the sum of all even numbers between 0 and 20. However, the program begins to hang when process 0 reached line 28 (process 1 also hangs, but it's already at the `MPI_Finalize` part of the routine so we don't need to worry about it). Once we reach this hang, we can't easily keep going. Let's stop this debugging session and restart it by using `release`:
-
-```bash
- dbg all> release $my_prog
- dbg all> launch --launcher-args="--account={{site.gid}} --partition=standard --qos=short --tasks-per-node=2 --cpus-per-task=1 --exclusive --export=ALL" $my_new_prog{2} ./gdb_exercise
-```
-
-This time, instead of `next`, we will use `step` -- this does the same as `next` with the added feature that we can go into functions and subroutines where applicable. As the new bug appears to come from the `sum_even` function, let's see where exactly the program hangs.
-
-> ## Exercise
-> Having `step`ed into the `sum_even` function, can you find where the code hangs?
-> > ## Solution
-> > The `i++` should be brought outside of the `if` part of the `while` loop. Changing this will make the code work fully.
-> {: .solution}
-{: .challenge}
-
-There are other ways to run gdb4hpc. For example. you can attach it to a job which is already running if you would like to examine
-its execution. You can also start an interactive session with `salloc` as we saw in the previous session and then `launch` from
-within gdb4hpc directly to the job without having to specify the `--launcher-args` options. This may be more efficient if you need
-to repeatedly restart the executable, as you won't have to wait for nodes to be allocated every time.
+The [Cray Performance Measurement and Analysis Tools User Guide](https://support.hpe.com/hpesc/public/docDisplay?docId=a00115110en_us&docLocale=en_US&page=Cray_Performance_Measurement_and_Analysis_Tools_CPMAT.html)
+and the ARCHER2 [profiling](https://docs.archer2.ac.uk/user-guide/profile/) documentation will also be useful.
 
 ## Profiling tools overview
 
@@ -215,8 +34,12 @@ a number of different components:
 * **Cray PAPI** components, which are support packages for those who want to access performance counters
 * **Cray Apprentice2** the second-level data analysis tool, used to visualize, manipulate, explore, and compare sets of program performance data in a GUI environment.
 
-
 See the [Cray Performance Measurement and Analysis Tools User Guide](https://pubs.cray.com/bundle/Cray_Performance_Measurement_and_Analysis_Tools_User_Guide_644_S-2376/page/About_the_Cray_Performance_Measurement_and_Analysis_Tools_User_Guide.html).
+
+Other tools available are:
+
+* **Scalasca** used for the scalable performance analysis of large-scale parallel applications.
+* **ARM MAP** (previously known as Allinea MAP) will be available soon for ARCHER2 users.
 
 ## Using CrayPat Lite to profile an application
 
@@ -304,11 +127,19 @@ I/O Write Rate:   701.173609 MiBytes/sec
 {: .output}
 
 Instructions are given at the end of the output on how to see more detailed results and how to
-visualise them graphically with the Cray Apprentice2 tool.
+visualise them graphically with the Cray Apprentice2 tool (more on this below).
+
+You may have seen that other `perftools-lite` modules are available. The ones of interest to
+ARCHER2 users will be `perftools-lite-event` which will instrument executables for event tracing
+rather than sampling experiments, and `perftools-lite-loops` which will profile loops in the code.
+The latter can only be used with the CCE compilers. To use either, just load these modules instead
+of `perftools-lite`.
 
 ## Using CrayPat to profile an application
 
-We are now going to use the full CrayPat tools. To do so, we first need to load the required modules
+We are now going to use the full CrayPat tool. Here, we'll go through the process of performing an APA 
+(Automatic Program Run) instrumented experiment, which is an easy way to run a 'sensible' event tracing experiment.
+To do so, we first need to load the required modules
 
 ```
 auser@ln01:~/nbody-par>  module unload perftools-lite
@@ -316,20 +147,25 @@ auser@ln01:~/nbody-par>  module load perftools
 ```
 {: .language-bash}
 
-After loading the modules, we need to recompile the application
+After loading the modules, we will recompile the application from scratch
 ```
 auser@ln01:~/nbody-par> make clean; make
 ```
 {: .bash}
 
-Once the application has been built, we need to instrument the binary. We do this with `pat_build`
+CrayPat-lite would at this stage have produced an executable ready to run a sampling experiment, but with CrayPat we
+now need to decide what kind of experiment we want to perform with it. With the application built, we then use `pat_build`
+
 ```
 auser@ln01:~/nbody-par> pat_build nbody-parallel.exe
 ```
 {: .bash}
 
-and a new binary called `nbody-parallel.exe+pat` it will be generated. In fact, this is the binary that we need
-to run in order to obtain the performance data. Replace the ``srun`` line in the Slurm script with the following
+and a new binary called `nbody-parallel.exe+pat` will be generated. This is the binary that we need to run in order to
+obtain the performance data. Extra options passed to `pat_build` will change the type of data we gather. Like this, with
+no options, we will be performing a sampled run; as another example, using `pat_build -g mpi` would trace calls to MPI.
+
+Continuing with our sampling experiment, replace the ``srun`` line in the Slurm script with the following
 ```
 srun --cpu-bind=cores ./nbody-parallel.exe+pat -n 10240 -i 10 -t 1
 ```
@@ -342,13 +178,15 @@ After the job has finished, files are stored in an experiment data directory wit
 * `node`: The physical node ID upon which the rank zero process was executed
 * `[s|t]`: The type of experiment performed, either `s` for sampling or `t` for tracing
 
-for example, in our case a new directory called `nbody-parallel.exe+pat+192028-1341s` could be created. It is now time to obtain the performance report. We do this with the `pat_report` command and the new created directory
+For example, in our case a new directory called `nbody-parallel.exe+pat+192028-1341s` could be created. It is now time to obtain the performance report. We do this with the `pat_report` command and the new created directory
 ```
 auser@ln01:~/nbody-par> pat_report nbody-parallel.exe+pat+192028-1341s
 ```
 {: .bash}
 
-This will command generate a full performance report and can generate a large amount of data, so you may wish to capture the data in an output file, either using a shell redirect like `>`,  or we could choose to see only some reports. If we want to see only a profile report by function we can do
+This will command generate a full performance report and can generate a large amount of data, so you may wish to capture the data in an output file, either using a shell redirect like `>`,  or we could choose to see only some reports.
+
+If we want to see only a profile report by function we can do
 
 ```
 auser@ln01:~/nbody-par> pat_report -v -O samp_profile nbody-parallel.exe+pat+192028-1341s
@@ -494,12 +332,22 @@ Table 1:  Profile by Function and Callers, with Line Numbers
 ```
 {: .output}
 
-The run will generate two more files in the output directory, one with the extension `.ap2` which holds the same data as the report data (`.xf`) but in the post processed form. The other file is called `build-options.apa` and is a text file with a configuration for generating a traced (as opposed to sampled) experiment. The APA (Automatic Program Analysis) configuration is a targeted trace, based on the results from our previous sampled experiment. You are welcome and encouraged to review this file and modify its contents in subsequent iterations, however in this first case we will continue with the defaults.
+> ## Filtering results
+> The reports produced by `pat_report` are by default averages over all tasks. If you only want to see results for some
+> subsection of tasks, you can filter them. To view the results from the first 10 tasks only, you would do `pat_report -sfilter_input='pe<10'`.
+> On the other hand, `pat_report -sfilter_input='pe==0'` would produce results for task 0 only.
+{: .callout}
+
+> ## CrayPat-lite and `pat_report`
+> You can use `pat_report` in just the same way with an experiment data directory that was generated by a CrayPat-lite run.
+{: .callout}
+
+The run will generate two other files in the experiment directory, one with the extension `.ap2` which holds the same data as the report data (`.xf`) but in a post processed form. The other file is called `build-options.apa` and is a text file with a configuration for generating a traced (as opposed to sampled) experiment. The APA (Automatic Program Analysis) configuration is a targeted trace, based on the results from our previous sampled experiment. You are welcome and encouraged to review this file and modify its contents in subsequent iterations, however in this first case we will continue with the defaults.
 
 This `build-options.apa` file acts as the input to the `pat_build` command and is supplied as the argument to the `-O` flag.
 
 ```
-pat_build -O nbody-parallel.exe+pat+192028-1341s/build-options.apa
+auser@ln01:~/nbody-par> pat_build -O nbody-parallel.exe+pat+192028-1341s/build-options.apa
 ```
 {: .bash}
 
@@ -539,7 +387,7 @@ Table 1:  Profile by Function Group and Function
 ```
 {: .output}
 
-The new table above is the version generated from tracing data instead of the previous sampling data table. This version makes available true timing information (average per processor) and the number of times each function is called.
+The new table above is the version generated from tracing data instead of the previous sampling data table. This version makes available true timing information (average per processor) and the number of times each function is called. We can also see a new section in Table 1, 'MPI_SYNC', which tells us how much time was spent waiting in collectives. This information is only found in event tracing runs.
 
 We can also get very important performance data from the hardware (HW) counters
 ```
@@ -593,14 +441,13 @@ auser@ln01:~/nbody-par> app2 nbody-parallel.exe+apa+114297-5209t
 ```
 {: .bash}
 
+## Getting help with profiling tools
 
-## Getting help with debugging and profiling tools
-
-You can find more information on the debugging and profiling tools available on ARCHER2 in the ARCHER2 Documentation
+You can find more information on the profiling tools available on ARCHER2 in the ARCHER2 Documentation
 and the Cray documentation:
 
-* [ARCHER2 Documentation](https://docs.archer2.ac.uk)
-* [Cray Technical Documentation](https://pubs.cray.com/)
+* [ARCHER2 Documentation](https://docs.archer2.ac.uk/user-guide/profile/)
+* [Cray Technical Documentation](https://support.hpe.com/hpesc/public/docDisplay?docId=a00115110en_us&docLocale=en_US&page=Cray_Performance_Measurement_and_Analysis_Tools_CPMAT.html)
 
 If the documentation does not answer your questions then please contact
 [the ARCHER2 Service Desk](https://www.archer2.ac.uk/support-access/servicedesk.html) and they
