@@ -103,11 +103,19 @@ the full calculation.
 
 ## Have a backup plan
 
-Although the ARCHER2 /home file systems are backed up, the /work file systems are not,
-and /home is only backed up for disaster recovery purposes (*i.e.* for restoring the
-whole file system if lost rather than an individual file or directory you have deleted by mistake).
-Your data on ARCHER2 is primarily your responsibility and you should ensure you have secure copies of data
-that are critical to your work.
+The ARCHER2 /home file systems are backed up and are available at e.g. `/home1/.snapshot`.
+Within these `.snapshot` directories are hourly, daily and weekly backups, the layout within
+them being copies of the normal `/home/<projectcode>/<projectcode>/<username>` structure.
+You can always find out which of the file systems your own home directory exists on by
+running the command
+
+```
+readlink -f $HOME
+```
+
+However, nothing is foolproof, and the /work file systems where your recent runs are probably
+stored are not backed up. Your data on ARCHER2 is primarily your responsibility and you should
+ensure you have secure copies of data that are critical to your work.
 
 Version control systems (such as Git) often have free, cloud-based offerings (e.g. Github, Gitlab)
 that are generally used for storing source code. Even if you are not writing your own 
