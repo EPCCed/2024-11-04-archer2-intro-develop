@@ -1,4 +1,4 @@
-# ARCHER2 for package users
+# Introduction to ARCHER2 for Developers
 
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
@@ -6,7 +6,7 @@ This is not an official Carpentries lesson, but the Carpentries lesson template 
 
 ## Maintainer(s)
 
-* Andy Turner
+* [William Lucas](mailto:w.lucas@epcc.ed.ac.uk) 
 
 ## Authors
 
