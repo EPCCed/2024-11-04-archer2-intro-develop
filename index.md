@@ -10,9 +10,9 @@ humandate:
 humantime: 
 startdate: 
 enddate: 
-instructor: ["Andy Turner"]
+instructor: ["William Lucas"]
 helper: []
-email: ["a.turner@epcc.ed.ac.uk"]
+email: ["w.lucas@epcc.ed.ac.uk"]
 collaborative_notes: 
 eventbrite: 
 root: .
