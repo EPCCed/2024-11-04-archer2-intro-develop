@@ -32,6 +32,8 @@ The lesson aims to answer the following questions:
   - What does the ARCHER2 application development environment look like and how do I use it?
   - How do I write job submission scripts and submit them to the ARCHER2 scheduler?
   - How can I be a good ARCHER2 citizen?
+  - How can I debug code on ARCHER2 to fix problems?
+  - How can I profile code on ARCHER2 to determine its performance?
   - How can I check what resources I am using and look at historical usage?
   - What are the next steps for me using ARCHER2 and how can I get more help?
 
@@ -88,7 +90,6 @@ The lesson aims to answer the following questions:
 
   Modify the block below if there are any barriers to accessibility or
   special instructions.
-{% endcomment %}
 <p id="accessibility">
   <strong>Accessibility:</strong> We are committed to making this workshop
   accessible to everybody.
@@ -106,6 +107,7 @@ The lesson aims to answer the following questions:
   get in touch (using contact details below) and we will
   attempt to provide them.
 </p>
+{% endcomment %}
 
 {% comment %}
   CONTACT EMAIL ADDRESS
@@ -135,11 +137,13 @@ The lesson aims to answer the following questions:
 <hr/>
 
 > ## Prerequisites
-> You should have used remote HPC facilities before. In particular, you should be happy with connecting
-> using SSH, know what a batch scheduling system is and be familiar with using the Linux command line.
-> You should also be happy editing plain text files in a remote terminal (or, alternatively, editing them
-> on your local system and copying them to the remote HPC system using `scp`). Finally, you should be 
-> comfortable with compiling parallel HPC source code that uses MPI and OpenMP.
+> You should be familiat working with the Linux command line interface. You
+> should be able to connect to remote machines using SSH; if you are a Windows
+> user, this means you will need to set up an SSH client. Though there are many
+> options, we would strongly recommend using MobaXterm or working in WSL. You
+> will also need to edit files remotely over SSH, so experience with `nano`,
+> `emacs` or `vim` will be helpful. An alternative here is to edit files locally
+> and copy them remotely with `scp` or `rsync`.
 {: .prereq}
 
 <hr/>
