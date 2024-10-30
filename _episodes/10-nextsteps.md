@@ -46,6 +46,33 @@ and this will differ from individual to individual!
 > questions (both technical and non-technical).
 {: .challenge}
 
+> ## Investigate the HPC-UK build instruction repository
+>
+> The HPC-UK [build instructions repository on
+> GitHub](https://github.com/hpc-uk/build-instructions) contains instructions on
+> how to manually build many software packages on ARCHER2 and other systems.
+> Among these is WRF, an application you may be familiar with. Take a look at
+> this repository and, if you like, have a go at building and running one of
+> these packages on ARCHER2. *N.B.* some packages, including WRF, may take
+> several hours to build. In situations like this, it can be a good idea to
+> build in a job on the compute nodes. Can you write a script to do so?
+{: .challenge}
+
+> ## Run the OSU Micro Benchmarks
+>
+> The [OSU Micro Benchmarks](https://mvapich.cse.ohio-state.edu/benchmarks/) 
+> are a suite of small test programs which can be used to benchmark the
+> performance of communication with MPI. You can try to compile and run the
+> benchmarks on ARCHER2. When it comes to compiling, remember what we've said
+> about the Cray Programming Environment, and when it comes to running the
+> benchmarks use both the micro benchmarks' and ARCHER2's documentation to write
+> appropriate job scripts. To start with, why not try running the `osu_latency`
+> benchmark? This is a ping-pong test that measures how long it takes for a
+> process to send messages of various sizes and then receive an answer. As such,
+> it uses two MPI processes: try running the benchmark with both on the same
+> node, then on two different nodes. What do you see in the results?
+{: .challenge}
+
 > ## Exploring the performance of GROMACS
 >
 > [GROMACS](http://www.gromacs.org) is a world-leading biomolecular modelling package
