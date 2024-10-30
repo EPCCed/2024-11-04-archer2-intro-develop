@@ -1,7 +1,7 @@
 ---
 layout: break
 title: "Morning Break"
-break: 15
+break: 30
 ---
 
 {% include links.md %}
