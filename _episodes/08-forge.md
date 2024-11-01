@@ -23,12 +23,12 @@ Forge requires a bit of one-time setup before you can use it on ARCHER2. Thankfu
 We will firstly load the Forge module and then move to the `work` directory:
 
 ```
-module load arm/forge
+module load forge
 cd /work/{{site.gid}}/{{site.gid}}/auser
 ```
 {: .bash}
 
-Sourcing a script in the Forge directories will do most of the setup for us:
+This will load the current default `forge` module, which is version 24.0. We then source a script in the Forge directories which will do most of the setup for us:
 
 ```
 source ${FORGE_DIR}/config-init
@@ -38,12 +38,12 @@ source ${FORGE_DIR}/config-init
 ```
 Warning: failed to read system config.
 The clean configuration has been saved as: /work/{{site.gid}}/{{site.gid}}/auser/.allinea/system.config
-To use this configuration file as a template for all Arm Forge users copy it to: /mnt/lustre/a2fs-work1/work/y07/shared/utils/core/arm/forge/22.1.3/system.config
+To use this configuration file as a template for all Linaro Forge users copy it to: /mnt/lustre/a2fs-work1/work/y07/shared/utils/core/forge/24.0/system.config
 ```
 {: .output}
 
 The warning can safely be ignored. What's important is that the clean system configuration is generated and stored within your `work` directories.
-You can see that a new hidden directory has been created in your `work` directory, `.allinea`. Inside are two files, `system.config` and `user.config` that contain the actual configuration. These have been prepared for you.
+You can see that a new hidden directory has been created in your `work` directory, `.forge`. Inside are two files, `system.config` and `user.config` that contain the actual configuration. These have been prepared for you.
 
 <!-- To complete the one-time setup, we need to edit the `system.config` file, making sure it knows to use your `work` directory and not `home`.
 
@@ -56,9 +56,7 @@ At this point the one-time setup is complete.
 
 ## Setting up and configuring the Linaro Forge client
 
-Firstly, you will need to download and install the [Forge software from Linaro](https://www.linaroforge.com/downloadForge/). A client for your OS and CPU architecture should be available -- you will generally want to download the client version which matches the version installed on ARCHER2. At the moment, that means version 22.1.3.
-
-The client connects to ARCHER2 over SSH. That means that whatever we need to log in in the terminal, we will also need to provide to Forge. This has the potential to get tricky around the SSH key. A fairly failsafe way to do this 
+Firstly, you will need to download and install the [Forge software from Linaro](https://www.linaroforge.com/downloadForge/). A client for your OS and CPU architecture should be available -- you will generally want to download the client version which matches the version you want to use on ARCHER2. At the moment, that means version 24.0.
 
 Start the client on your machine. Then, let's configure the connection to ARCHER2. You should see a drop-down box labelled 'Remote Launch'. Click on the box and then on 'Configure.'
 
@@ -66,18 +64,16 @@ A new window will appear listing your current connections. Unless you've used Fo
 
 * A connection name: something sensible like `archer2{{site.gid}}` should help you to identify it.
 * The host name: provide with your username just as when you log in with SSH, `username@login.archer2.ac.uk`.
-* Remote installation directory: copy the path `/work/y07/shared/utils/core/arm/forge/latest`
-* Remote script: this is almost like a `.bashrc` to be used by Forge. Copy and paste this path: `/work/y07/shared/utils/core/arm/forge/latest/remote-init`
-* Private key: enter the path to the SSH private key you use to connect.
+* Remote installation directory: copy the path `/work/y07/shared/utils/core/forge/24.0`
+* Remote script: this is almost like a `.bashrc` to be used by Forge. Copy and paste this path: `/work/y07/shared/utils/core/forge/latest/remote-init`
+* Private key: enter the path on your machine to the SSH private key you use to connect to ARCHER2.
 * Keep-alive packets: tick the box and set to 30 seconds.
 
 > ## SSH key
 > If you are able to use the SSH Agent to provide your private key, you may not need to enter it in Forge. Just run `ssh-add <path-to-private-key>` as normal in your terminal, or check if it's already being provided with `ssh-add -L`, then try to connect in Forge.
 {: .callout}
 
-Click on OK, then close the connection configuration window. You should now be ready to connect to ARCHER2.
-
-To give it a go, click on the 'Remote Launch' drop-down box again, then click on your new connection. If all goes well, the connection will start, the initial key exchange will succeed, and you will be prompted for your ARCHER2 TOTP in a window that briefly opens. Once you are connected, you should see that licence information is now visible at the bottom left of the Forge window, and your connection is listed at the bottom right.
+Click on OK, then close the connection configuration window. You should now be ready to connect to ARCHER2. To give it a go, click on the 'Remote Launch' drop-down box again, then click on your new connection. If all goes well, the connection will start, the initial key exchange will succeed, and you will be prompted (if you haven't yet done so today) for your ARCHER2 TOTP in a window that briefly opens. Once you are connected, you should see that licence information is now visible at the bottom left of the Forge window, and your connection is listed at the bottom right.
 
 ## Debugging with DDT
 
@@ -101,7 +97,7 @@ For a simple job like this, we need to provide details in three sections of this
 
 The application details are quite simple. You choose the executable to run, any arguments it may require, and the working directory in which you want the job to take place. For our job here, you can provide the path to `gdb_exercise`, leave the arguments blank, and choose the working directory to be the one containing `gdb_exercise`.
 
-Let's now choose what resources we want to use. If the 'MPI' box isn't ticked, do so now. This will expand the MPI section. Make sure that 'Slurm (generic)' is listed as the implementation -- if it isn't, make sure to change that first.
+Let's now choose what resources we want to use. Enable MPI firstly by opening the panel then clicking on the button to choose an implementation. In the window that opens, choose 'Slurm (generic)', then click 'OK'. We're back to the run options, and we can enable and disable MPI with the tickbox. Let's enabled it.
 
 We know that this code should work over two processes, so select:
 
@@ -111,10 +107,10 @@ We know that this code should work over two processes, so select:
 
 You can also add any other `srun` arguments you may want here. For us just now, we'll leave it blank.
 
-Finally, we need to say something about what a job script looks like. Make sure that 'Submit to queue' is ticked, then click on 'Configure'. This will open a new window. We need to provide a submission template file. One is made available in the Forge installation directories, so enter `/work/y07/shared/utils/core/arm/forge/22.1.3/templates/archer2.qtf`. Then click on 'OK'.
+Finally, we need to say something about what a job script looks like. Make sure that 'Submit to queue' is ticked, then click on 'Configure'. This will open a new window. We need to provide a submission template file. One is made available in the Forge installation directories, so enter `/work/y07/shared/utils/core/forge/24.0/templates/archer2.qtf`. Then click on 'OK'.
 
 > ## Submission template files
-> You can take a look at `/work/y07/shared/utils/core/arm/forge/22.1.3/templates/archer2.qtf` to see what it contains. You'll see it looks like a fairly standard ARCHER2 job script, with some parameters replaced with tags used by DDT to set the job parameters. If your job needs to launch differently, you can make your own copy of this script, edit it as necessary, and then tell DDT to use it.
+> You can take a look at `/work/y07/shared/utils/core/forge/24.0/templates/archer2.qtf` to see what it contains. You'll see it looks like a fairly standard ARCHER2 job script, with some parameters replaced with tags used by DDT to set the job parameters. If your job needs to launch differently, you can make your own copy of this script, edit it as necessary, and then tell DDT to use it. The template file provided should be a good starting point for whatever you might need to do.
 {: .callout}
 
 You can set your job's remaining parameters by clicking on the 'Parameters' button. Set the following for now:
@@ -152,10 +148,10 @@ There are many powerful and quite easy to use tools here. Along the top are butt
 
 ## Profiling with MAP
 
-Let's now look at how to profile with MAP. As before, we'll reuse the profiling experiment from earlier as we already have some experience. Make sure you have the `arm/forge` module loaded, re-download the `.tar.gz` containing the source code and extract it.
+Let's now look at how to profile with MAP. As before, we'll reuse the profiling experiment from earlier as we already have some experience. Make sure you have the `forge/24.0` module loaded, re-download the `.tar.gz` containing the source code and extract it.
 
 ```
-auser@ln01:~> module load arm/forge
+auser@ln01:~> module load forge
 auser@ln01:~> wget {{site.url}}{{site.baseurl}}/files/nbody-par.tar.gz
 auser@ln01:~> tar -xzf nbody-par.tar.gz
 ```
