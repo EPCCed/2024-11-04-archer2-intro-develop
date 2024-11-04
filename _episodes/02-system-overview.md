@@ -168,15 +168,17 @@ project quota in this case.)
 
 ### Solid State
 
-The solid state storage system is available on the compute nodes and is designed for
-the highest read and write performance to improve performance of workloads that are I/O bound in
-some way. Access to solid state storage resources is controlled through the Slurm scheduling 
-system. The solid state storage is not backed up in any way. There is a total of 1.1 PB usable
-space available on the solid state storage system.
+The solid state storage (NVMe) system is available on the compute nodes and is
+designed for the highest read and write performance to improve performance of
+workloads that are I/O bound in some way. Projects do not by default have
+storage allocated for their users on the solid state file system, but can
+request it. There is a total of 1.1 PB usable space available on the solid state
+storage system.
 
-Data on the solid state storage is transient so all data you require before a job starts or
-after a job finishes must be *staged* on to or off of the solid state storage. We discuss how
-this works in the Scheduler episode later.
+Data on the solid state storage is intended as scratch and transient so all data
+you require before a job starts or after a job finishes must be *staged* on to
+or off of the solid state storage. To enforce this policy, any files which have
+not been accessed in more than 28 days are periodically deleted.
 
 ### RDFaaS
 
