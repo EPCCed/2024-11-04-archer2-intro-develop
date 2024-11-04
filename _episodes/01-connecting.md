@@ -65,6 +65,52 @@ Documentation:
 
 * [Connecting to ARCHER2](https://docs.archer2.ac.uk/user-guide/connecting/#access-credentials)
 
+## SSH configs
+
+If you are using the command line `ssh` client on Linux, macOS or WSL, then it
+can be very convenient in the long run to set up an entry in your SSH config
+file. This is a file at `~/.ssh/config` which you can open with any text editor.
+It may already exist for you and be populated with information, or it may be
+empty, or it may not yet have been created, in which case you can feel free to
+create it yourself.
+
+The `config` file contains tabulated information on remote SSH hosts and how to
+connect to them. Each entry is keyed with `Host` followed by the name of your
+choice you would use to connect to it, followed by a sequence of `option value`
+pais. This means you can create an entry for ARCHER2 containing information on
+the login URL, your username, and the SSH private key to use for authentication.
+If you find you commonly need any other SSH options, you can add those too.
+
+A minimal entry for ARCHER2 in the `config` might look like:
+
+```
+Host archer2
+  HostName login.archer2.ac.uk
+  User auser
+  IdentityFile /path/to/your/ssh/private/key
+```
+{: .config}
+
+where you would change `auser` to your own username and
+`/path/to/your/ssh/private/key` to the correct path to your key.
+
+You would then log in to ARCHER2 by simply passing the `Host` value to `ssh`,
+which then uses all the options set in the `config`. For the above example:
+
+```
+ssh archer2
+```
+{: .bash}
+
+Note that the `Host` value is your own choice. If you have multiple logins under
+different projects, you can create multiple `Host` entries for ARCHER2, each with
+a different `User`.
+
+If you use the SSH Agent on your own machine, another option you might like to
+add to your `config` is `ForwardAgent yes`. This enables ARCHER2 to
+re-authenticate you with any key that might be active on your own machine which
+can in some situations be helpful.
+
 ## Passwords and password policy
 
 All accounts on ARCHER2 have a password. Though rare, you may need to use this
